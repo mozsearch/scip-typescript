@@ -105,3 +105,29 @@ function array_of_objects() {
 //                           ^^^^^^^ definition pure-js 1.0.0 src/`main.js`/element1:
 }
 
+function SomeClass() {}
+//       ^^^^^^^^^ definition pure-js 1.0.0 src/`main.js`/SomeClass().
+
+SomeClass.prototype = {
+//^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
+//^^^^^^^ reference local 24
+//        ^^^^^^^^^ reference local 23
+  someMethod() {},
+//^^^^^^^^^^ definition local 26
+}
+
+SomeClass.prototype.someMethod2 = () => {}
+//^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
+//^^^^^^^ reference local 24
+//        ^^^^^^^^^ reference local 23
+//                  ^^^^^^^^^^^ reference local 29
+
+new SomeClass().someMethod()
+//  ^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
+//  ^^^^^^^^^ reference local 24
+//              ^^^^^^^^^^ reference local 26
+new SomeClass().someMethod2()
+//  ^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
+//  ^^^^^^^^^ reference local 24
+//              ^^^^^^^^^^^ reference local 29
+

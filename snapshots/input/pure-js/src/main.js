@@ -51,3 +51,14 @@ function var_function_scope() {
 function array_of_objects() {
   var a = [{ element: 0 }, { element: 1 }]
 }
+
+function SomeClass() {}
+
+SomeClass.prototype = {
+  someMethod() {},
+}
+
+SomeClass.prototype.someMethod2 = () => {}
+
+new SomeClass().someMethod()
+new SomeClass().someMethod2()
