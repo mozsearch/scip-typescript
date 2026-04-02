@@ -411,6 +411,11 @@ export class FileIndexer {
     }
     return relationships
   }
+
+  private getParent(node: ts.Node): ts.Node {
+    return node.parent
+  }
+
   private scipSymbol(node: ts.Node): ScipSymbol {
     const fromCache: ScipSymbol | undefined =
       this.globalSymbolTable.get(node) || this.localSymbolTable.get(node)
@@ -487,7 +492,8 @@ export class FileIndexer {
       }
     }
 
-    const owner = this.scipSymbol(node.parent)
+    const ownerNode = this.getParent(node)
+    const owner = this.scipSymbol(ownerNode)
     if (owner.isEmpty() || owner.isLocal()) {
       return this.newLocalSymbol(node)
     }
