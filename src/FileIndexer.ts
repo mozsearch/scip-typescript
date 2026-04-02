@@ -413,6 +413,10 @@ export class FileIndexer {
   }
 
   private getParent(node: ts.Node): ts.Node {
+    if (isAnonymousContainerOfSymbols(node.parent)) {
+      return this.getParent(node.parent)
+    }
+
     return node.parent
   }
 
@@ -496,10 +500,6 @@ export class FileIndexer {
     const owner = this.scipSymbol(ownerNode)
     if (owner.isEmpty() || owner.isLocal()) {
       return this.newLocalSymbol(node)
-    }
-
-    if (isAnonymousContainerOfSymbols(node)) {
-      return this.cached(node, this.scipSymbol(node.parent))
     }
 
     if (

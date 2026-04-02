@@ -79,15 +79,15 @@ export function returnStatementInsideArgumentExpression(): Configuration[] {
 //                                 ^^^^^^ definition local 3
 //                                                  ^^^^^^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Configuration#
       const incremented = number + 1
-//          ^^^^^^^^^^^ definition local 6
+//          ^^^^^^^^^^^ definition local 4
 //                        ^^^^^^ reference local 3
       return {
         property: incremented,
 //      ^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Numbers#property.
-//                ^^^^^^^^^^^ reference local 6
+//                ^^^^^^^^^^^ reference local 4
         property2: incremented.toString(),
 //      ^^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Strings#property2.
-//                 ^^^^^^^^^^^ reference local 6
+//                 ^^^^^^^^^^^ reference local 4
 //                             ^^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Number#toString().
       }
     })
@@ -95,17 +95,17 @@ export function returnStatementInsideArgumentExpression(): Configuration[] {
     return [1].map<Configuration>(number => {
 //             ^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Array#map().
 //                 ^^^^^^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Configuration#
-//                                ^^^^^^ definition local 10
+//                                ^^^^^^ definition local 8
       const incremented = number + 1
-//          ^^^^^^^^^^^ definition local 13
-//                        ^^^^^^ reference local 10
+//          ^^^^^^^^^^^ definition local 9
+//                        ^^^^^^ reference local 8
       return {
         property: incremented,
 //      ^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Numbers#property.
-//                ^^^^^^^^^^^ reference local 13
+//                ^^^^^^^^^^^ reference local 9
         property2: incremented.toString(),
 //      ^^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Strings#property2.
-//                 ^^^^^^^^^^^ reference local 13
+//                 ^^^^^^^^^^^ reference local 9
 //                             ^^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Number#toString().
       }
     })
@@ -128,25 +128,25 @@ export function handleGenericClass() {
   return createGenericClass().map(({ property, property2 }) => ({
 //       ^^^^^^^^^^^^^^^^^^ reference syntax 1.0.0 src/`object-literals-call-signatures.ts`/createGenericClass().
 //                            ^^^ reference syntax 1.0.0 src/`reusable-types.ts`/GenericClass#map().
-//                                   ^^^^^^^^ definition local 19
+//                                   ^^^^^^^^ definition local 15
 //                                   ^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Numbers#property.
-//                                             ^^^^^^^^^ definition local 20
+//                                             ^^^^^^^^^ definition local 16
 //                                             ^^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Strings#property2.
     property: property + 1,
 //  ^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Numbers#property.
-//            ^^^^^^^^ reference local 19
+//            ^^^^^^^^ reference local 15
     property2: property2 + '1',
 //  ^^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Strings#property2.
-//             ^^^^^^^^^ reference local 20
+//             ^^^^^^^^^ reference local 16
   }))
 }
 
 export function handleShorthand() {
 //              ^^^^^^^^^^^^^^^ definition syntax 1.0.0 src/`object-literals-call-signatures.ts`/handleShorthand().
   const property = '42'
-//      ^^^^^^^^ definition local 23
+//      ^^^^^^^^ definition local 17
   const interfaceMethod = (): string => 'inferred'
-//      ^^^^^^^^^^^^^^^ definition local 26
+//      ^^^^^^^^^^^^^^^ definition local 18
   consumesInterface({
 //^^^^^^^^^^^^^^^^^ reference syntax 1.0.0 src/`object-literals-call-signatures.ts`/consumesInterface().
     interfaceMethod,
