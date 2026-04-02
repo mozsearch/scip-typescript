@@ -32,17 +32,17 @@ export function consumesArrowFunction(): number {
   return (
     hasArrowFunctionParameter(1, ({ foobar }) => ({ foobar: foobar + 1 }))
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/hasArrowFunctionParameter().
-//                                  ^^^^^^ definition local 4
+//                                  ^^^^^^ definition local 8
 //                                  ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#foobar.
 //                                                  ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#foobar.
-//                                                          ^^^^^^ reference local 4
+//                                                          ^^^^^^ reference local 8
       .foobar +
 //     ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#foobar.
     hasArrowFunctionParameter(2, foobar => ({ foobar: foobar.foobar + 2 }))
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/hasArrowFunctionParameter().
-//                               ^^^^^^ definition local 6
+//                               ^^^^^^ definition local 11
 //                                            ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#foobar.
-//                                                    ^^^^^^ reference local 6
+//                                                    ^^^^^^ reference local 11
 //                                                           ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#foobar.
       .foobar
 //     ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#foobar.
@@ -55,9 +55,9 @@ export function genericArrow(): Foobar[] {
   return [1].map<Foobar>(n => ({ foobar: n + 1 }))
 //           ^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Array#map().
 //               ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#
-//                       ^ definition local 10
+//                       ^ definition local 15
 //                               ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#foobar.
-//                                       ^ reference local 10
+//                                       ^ reference local 15
 }
 
 export function genericArrowOption(): Option<Foobar>[] {
@@ -68,10 +68,10 @@ export function genericArrowOption(): Option<Foobar>[] {
 //           ^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Array#map().
 //               ^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Option#
 //                      ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/Foobar#
-//                               ^ definition local 14
+//                               ^ definition local 19
 //                                       ^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Option#value.
 //                                                ^^^^^^ definition syntax 1.0.0 src/`object-literals-arrow-function.ts`/foobar0:
-//                                                        ^ reference local 14
+//                                                        ^ reference local 19
 }
 
 export function genericArrow2(): Foobar[] {
@@ -81,8 +81,8 @@ export function genericArrow2(): Foobar[] {
   // because `map`  is missing an explicit `map<Foobar>` annotation.
   return [1].map(n => ({ foobar: n + 1 }))
 //           ^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Array#map().
-//               ^ definition local 18
+//               ^ definition local 23
 //                       ^^^^^^ reference syntax 1.0.0 src/`object-literals-arrow-function.ts`/foobar1:
-//                               ^ reference local 18
+//                               ^ reference local 23
 }
 

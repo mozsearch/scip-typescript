@@ -413,6 +413,30 @@ export class FileIndexer {
   }
 
   private getParent(node: ts.Node): ts.Node {
+    if (ts.isPropertyAccessExpression(node.parent)) {
+      if (node === node.parent.name) {
+        return node.parent.expression
+      }
+
+      return this.getParent(node.parent)
+    }
+
+    if (
+      ts.isObjectLiteralExpression(node.parent) ||
+      ts.isClassExpression(node.parent)
+    ) {
+      if (
+        ts.isBinaryExpression(node.parent.parent) &&
+        node.parent === node.parent.parent.right &&
+        node.parent.parent.operatorToken.kind === ts.SyntaxKind.FirstAssignment
+      ) {
+        return node.parent.parent.left
+      }
+      if (ts.isVariableDeclaration(node.parent.parent)) {
+        return node.parent.parent
+      }
+    }
+
     if (isAnonymousContainerOfSymbols(node.parent)) {
       return this.getParent(node.parent)
     }
@@ -494,6 +518,10 @@ export class FileIndexer {
           // don't know why yet.
         }
       }
+    }
+
+    if (ts.isPropertyAccessExpression(node)) {
+      node = node.name
     }
 
     const ownerNode = this.getParent(node)
@@ -583,6 +611,22 @@ export class FileIndexer {
     }
     if (ts.isTypeLiteralNode(node)) {
       return metaDescriptor('typeLiteral' + this.localCounter.next().toString())
+    }
+    if (ts.isIdentifier(node)) {
+      const sym = this.getTSSymbolAtLocation(node)
+      if (sym) {
+        if (sym.flags & ts.SymbolFlags.Class) {
+          return typeDescriptor(node.getText())
+        }
+
+        if (
+          sym.flags & ts.SymbolFlags.Function ||
+          sym.flags & ts.SymbolFlags.Method
+        ) {
+          return methodDescriptor(node.getText())
+        }
+      }
+      return termDescriptor(node.getText())
     }
     return undefined
   }

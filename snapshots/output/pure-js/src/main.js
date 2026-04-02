@@ -110,20 +110,20 @@ function SomeClass() {}
 
 SomeClass.prototype = {
 //^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//        ^^^^^^^^^ definition local 8
+//        ^^^^^^^^^ definition pure-js 1.0.0 src/`main.js`/SomeClass().prototype.
   someMethod() {},
-//^^^^^^^^^^ definition local 10
+//^^^^^^^^^^ definition pure-js 1.0.0 src/`main.js`/SomeClass().prototype.someMethod().
 }
 
 SomeClass.prototype.someMethod2 = () => {}
 //^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//        ^^^^^^^^^ reference local 8
-//                  ^^^^^^^^^^^ definition local 12
+//        ^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().prototype.
+//                  ^^^^^^^^^^^ definition pure-js 1.0.0 src/`main.js`/SomeClass().prototype.someMethod2().
 
 new SomeClass().someMethod()
 //  ^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//              ^^^^^^^^^^ reference local 10
+//              ^^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().prototype.someMethod().
 new SomeClass().someMethod2()
 //  ^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//              ^^^^^^^^^^^ reference local 12
+//              ^^^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().prototype.someMethod2().
 

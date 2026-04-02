@@ -23,7 +23,7 @@ new SomeExportedClass().method()
 //                      ^^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/SomeExportedClass#method().
 new SomeAnonymousClass().method()
 //  ^^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/SomeAnonymousClass.
-//                       ^^^^^^ reference local 0
+//                       ^^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/SomeAnonymousClass.method().
 someFunc()
 //^^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someFunc().
 someAnonymousFunc()
@@ -37,13 +37,13 @@ someObject.value
 //         ^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/value0:
 someObject.method()
 //^^^^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someObject.
-//         ^^^^^^ reference local 1
+//         ^^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someObject.method().
 someObject.prop
 //^^^^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someObject.
-//         ^^^^ reference local 2
-//         ^^^^ reference local 3
+//         ^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someObject.`<get>prop`().
+//         ^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someObject.`<set>prop`().
 someObject.prop = 3
 //^^^^^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someObject.
-//         ^^^^ reference local 2
-//         ^^^^ reference local 3
+//         ^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someObject.`<get>prop`().
+//         ^^^^ reference pure-js 1.0.0 src/`exports.mjs`/someObject.`<set>prop`().
 
