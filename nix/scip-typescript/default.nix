@@ -25,12 +25,12 @@
 
   mainYarnOfflineCache = fetchYarnDeps {
     yarnLock = src + "/yarn.lock";
-    hash = "sha256-vTIm/oo3+OP2ZUnafar4Pm6trlXLn/W+u1w/347hj/4==";
+    hash = "sha256-qzGCXZDympsW61UVOIV4KVyXs3paZHp5O5cV8fr1QWI=";
   };
 
   snapshotsYarnOfflineCache = fetchYarnDeps {
     yarnLock = src + "/snapshots/yarn.lock";
-    hash = "sha256-7Gj4jpNVEYWDlYaoeZ9SAlFFbMjVpVAxO01HtJ5qcWs=";
+    hash = "sha256-DQxZRhq4o9OfvbhSWfblRKNGds90RhyVwj+FIBLPE1k=";
   };
 in
   stdenvNoCC.mkDerivation {
