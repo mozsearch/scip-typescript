@@ -42,12 +42,12 @@ const capture_lambda = () => {
 }
 
 for (var i = 0; i <= 10; i++) {}
-//       ^ definition local 2
-//              ^ reference local 2
-//                       ^ reference local 2
+//       ^ definition local 1
+//              ^ reference local 1
+//                       ^ reference local 1
 
 for (const x of [1, 2, 3]) {
-//         ^ definition local 5
+//         ^ definition local 3
 }
 
 var a = 0
@@ -68,39 +68,39 @@ function use_before_def() {
 //       ^^^^^^^^^^^^^^ definition pure-js 1.0.0 src/`main.js`/use_before_def().
   print_fib(n)
 //^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/print_fib().
-//          ^ reference local 8
+//          ^ reference local 6
   var n = 10
-//    ^ definition local 8
+//    ^ definition local 6
 
   if (forever()) {
 //    ^^^^^^^ reference pure-js 1.0.0 src/`main.js`/forever().
     var m = 10
-//      ^ definition local 11
+//      ^ definition local 9
   }
   print_fib(m)
 //^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/print_fib().
-//          ^ reference local 11
+//          ^ reference local 9
 }
 
 function var_function_scope() {
 //       ^^^^^^^^^^^^^^^^^^ definition pure-js 1.0.0 src/`main.js`/var_function_scope().
   var k = 0
-//    ^ definition local 14
+//    ^ definition local 12
   if (forever()) {
 //    ^^^^^^^ reference pure-js 1.0.0 src/`main.js`/forever().
     var k = 1
-//      ^ definition local 17
+//      ^ definition local 15
   }
   print_fib(k)
 //^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/print_fib().
-//          ^ reference local 14
-//          ^ reference local 17
+//          ^ reference local 12
+//          ^ reference local 15
 }
 
 function array_of_objects() {
 //       ^^^^^^^^^^^^^^^^ definition pure-js 1.0.0 src/`main.js`/array_of_objects().
   var a = [{ element: 0 }, { element: 1 }]
-//    ^ definition local 20
+//    ^ definition local 18
 //           ^^^^^^^ definition pure-js 1.0.0 src/`main.js`/element0:
 //                           ^^^^^^^ definition pure-js 1.0.0 src/`main.js`/element1:
 }
@@ -110,20 +110,20 @@ function SomeClass() {}
 
 SomeClass.prototype = {
 //^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//        ^^^^^^^^^ definition local 23
+//        ^^^^^^^^^ definition local 20
   someMethod() {},
-//^^^^^^^^^^ definition local 25
+//^^^^^^^^^^ definition local 22
 }
 
 SomeClass.prototype.someMethod2 = () => {}
 //^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//        ^^^^^^^^^ reference local 23
-//                  ^^^^^^^^^^^ definition local 28
+//        ^^^^^^^^^ reference local 20
+//                  ^^^^^^^^^^^ definition local 24
 
 new SomeClass().someMethod()
 //  ^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//              ^^^^^^^^^^ reference local 25
+//              ^^^^^^^^^^ reference local 22
 new SomeClass().someMethod2()
 //  ^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//              ^^^^^^^^^^^ reference local 28
+//              ^^^^^^^^^^^ reference local 24
 

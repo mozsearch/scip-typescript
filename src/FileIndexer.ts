@@ -512,11 +512,7 @@ export class FileIndexer {
       return this.cached(node, ScipSymbol.global(owner, desc))
     }
 
-    // Fallback case: generate a local symbol. It's not a bug when this case
-    // happens. For example, we hit this case for block `{}` that are local
-    // symbols, which are direct children of global symbols (toplevel
-    // functions).
-    return this.newLocalSymbol(node)
+    return ScipSymbol.empty()
   }
 
   private newLocalSymbol(node: ts.Node): ScipSymbol {

@@ -79,10 +79,10 @@ export function forLoopArrayDestructuring(): number {
 
 export function parameterDestructuring({ a }: Props): number {
 //              ^^^^^^^^^^^^^^^^^^^^^^ definition syntax 1.0.0 src/`destructuring.ts`/parameterDestructuring().
-//                                       ^ definition local 50
+//                                       ^ definition local 49
 //                                       ^ reference syntax 1.0.0 src/`destructuring.ts`/Props#a.
 //                                            ^^^^^ reference syntax 1.0.0 src/`destructuring.ts`/Props#
   return a
-//       ^ reference local 50
+//       ^ reference local 49
 }
 

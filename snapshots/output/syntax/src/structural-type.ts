@@ -49,11 +49,11 @@ export function bar2(): Promise<number> {
 type OptionsFlags<Type> = { [Property in keyof Type]: boolean }
 //   ^^^^^^^^^^^^ definition syntax 1.0.0 src/`structural-type.ts`/OptionsFlags#
 //                ^^^^ definition syntax 1.0.0 src/`structural-type.ts`/OptionsFlags#[Type]
-//                           ^^^^^^^^ definition local 12
+//                           ^^^^^^^^ definition local 11
 //                                             ^^^^ reference syntax 1.0.0 src/`structural-type.ts`/OptionsFlags#[Type]
 type FeatureFlags = { darkMode: () => void }
 //   ^^^^^^^^^^^^ definition syntax 1.0.0 src/`structural-type.ts`/FeatureFlags#
-//                    ^^^^^^^^ definition syntax 1.0.0 src/`structural-type.ts`/FeatureFlags#typeLiteral13:darkMode.
+//                    ^^^^^^^^ definition syntax 1.0.0 src/`structural-type.ts`/FeatureFlags#typeLiteral12:darkMode.
 export type FeatureOptions = OptionsFlags<FeatureFlags> // implicitly // type FeatureOptions = { // darkMode: boolean; // } const fo: FeatureOptions = { darkMode: true }; // ^ go to def
 //          ^^^^^^^^^^^^^^ definition syntax 1.0.0 src/`structural-type.ts`/FeatureOptions#
 //                           ^^^^^^^^^^^^ reference syntax 1.0.0 src/`structural-type.ts`/OptionsFlags#
@@ -61,5 +61,5 @@ export type FeatureOptions = OptionsFlags<FeatureFlags> // implicitly // type Fe
 export const fo: FeatureOptions = { darkMode: true }
 //           ^^ definition syntax 1.0.0 src/`structural-type.ts`/fo.
 //               ^^^^^^^^^^^^^^ reference syntax 1.0.0 src/`structural-type.ts`/FeatureOptions#
-//                                  ^^^^^^^^ reference syntax 1.0.0 src/`structural-type.ts`/FeatureFlags#typeLiteral13:darkMode.
+//                                  ^^^^^^^^ reference syntax 1.0.0 src/`structural-type.ts`/FeatureFlags#typeLiteral12:darkMode.
 

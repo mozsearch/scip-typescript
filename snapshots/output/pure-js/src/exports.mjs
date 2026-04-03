@@ -9,7 +9,7 @@ export class SomeExportedClass {
 export const SomeAnonymousClass = class /*anonymous*/ {
 //           ^^^^^^^^^^^^^^^^^^ definition pure-js 1.0.0 src/`exports.mjs`/SomeAnonymousClass.
   method() {}
-//^^^^^^ definition local 1
+//^^^^^^ definition local 0
 }
 
 export function someFunc() {}
@@ -28,13 +28,13 @@ export const someObject = {
   value: 5,
 //^^^^^ definition pure-js 1.0.0 src/`exports.mjs`/value0:
   method() {},
-//^^^^^^ definition local 3
+//^^^^^^ definition local 1
   get prop() {
-//    ^^^^ definition local 4
+//    ^^^^ definition local 2
     return true
   },
   set prop(val) {},
-//    ^^^^ definition local 5
-//         ^^^ definition local 6
+//    ^^^^ definition local 3
+//         ^^^ definition local 4
 }
 

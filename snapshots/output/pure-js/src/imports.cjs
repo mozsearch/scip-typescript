@@ -2,56 +2,56 @@
 
 const {
   SomeExportedClass,
-//^^^^^^^^^^^^^^^^^ definition local 1
-//^^^^^^^^^^^^^^^^^ reference local 4
+//^^^^^^^^^^^^^^^^^ definition local 0
+//^^^^^^^^^^^^^^^^^ reference local 2
   SomeAnonymousClass,
-//^^^^^^^^^^^^^^^^^^ definition local 5
-//^^^^^^^^^^^^^^^^^^ reference local 8
+//^^^^^^^^^^^^^^^^^^ definition local 3
+//^^^^^^^^^^^^^^^^^^ reference local 5
   someFunc,
-//^^^^^^^^ definition local 9
-//^^^^^^^^ reference local 12
+//^^^^^^^^ definition local 6
+//^^^^^^^^ reference local 8
   someAnonymousFunc,
-//^^^^^^^^^^^^^^^^^ definition local 13
-//^^^^^^^^^^^^^^^^^ reference local 16
+//^^^^^^^^^^^^^^^^^ definition local 9
+//^^^^^^^^^^^^^^^^^ reference local 11
   someArrowFunc,
-//^^^^^^^^^^^^^ definition local 17
-//^^^^^^^^^^^^^ reference local 20
+//^^^^^^^^^^^^^ definition local 12
+//^^^^^^^^^^^^^ reference local 14
   someValue,
-//^^^^^^^^^ definition local 21
-//^^^^^^^^^ reference local 24
+//^^^^^^^^^ definition local 15
+//^^^^^^^^^ reference local 17
   someObject,
-//^^^^^^^^^^ definition local 25
-//^^^^^^^^^^ reference local 28
+//^^^^^^^^^^ definition local 18
+//^^^^^^^^^^ reference local 20
 } = require('./exports.cjs')
 //  ^^^^^^^ reference @types/node 20.16.10 `globals.d.ts`/global/require.
 //          ^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/
 
 new SomeExportedClass().method()
-//  ^^^^^^^^^^^^^^^^^ reference local 29
-//                      ^^^^^^ reference local 30
+//  ^^^^^^^^^^^^^^^^^ reference local 21
+//                      ^^^^^^ reference local 22
 new SomeAnonymousClass().method()
-//  ^^^^^^^^^^^^^^^^^^ reference local 31
-//                       ^^^^^^ reference local 32
+//  ^^^^^^^^^^^^^^^^^^ reference local 23
+//                       ^^^^^^ reference local 24
 someFunc()
-//^^^^^^ reference local 12
+//^^^^^^ reference local 8
 someAnonymousFunc()
-//^^^^^^^^^^^^^^^ reference local 16
+//^^^^^^^^^^^^^^^ reference local 11
 someArrowFunc()
-//^^^^^^^^^^^ reference local 20
+//^^^^^^^^^^^ reference local 14
 someValue
-//^^^^^^^ reference local 24
+//^^^^^^^ reference local 17
 someObject.value
-//^^^^^^^^ reference local 28
+//^^^^^^^^ reference local 20
 //         ^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/value0:
 someObject.method()
-//^^^^^^^^ reference local 28
-//         ^^^^^^ reference local 34
+//^^^^^^^^ reference local 20
+//         ^^^^^^ reference local 26
 someObject.prop
-//^^^^^^^^ reference local 28
-//         ^^^^ reference local 35
-//         ^^^^ reference local 36
+//^^^^^^^^ reference local 20
+//         ^^^^ reference local 27
+//         ^^^^ reference local 28
 someObject.prop = 3
-//^^^^^^^^ reference local 28
-//         ^^^^ reference local 35
-//         ^^^^ reference local 36
+//^^^^^^^^ reference local 20
+//         ^^^^ reference local 27
+//         ^^^^ reference local 28
 
