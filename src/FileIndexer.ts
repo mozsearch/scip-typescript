@@ -417,6 +417,16 @@ export class FileIndexer {
     if (fromCache) {
       return fromCache
     }
+
+    const tsSymbol = this.getTSSymbolAtLocation(node)
+    if (
+      tsSymbol?.valueDeclaration &&
+      tsSymbol.valueDeclaration !== node &&
+      tsSymbol.valueDeclaration !== node.parent
+    ) {
+      return this.scipSymbol(tsSymbol.valueDeclaration)
+    }
+
     if (ts.isBlock(node)) {
       return ScipSymbol.empty()
     }
