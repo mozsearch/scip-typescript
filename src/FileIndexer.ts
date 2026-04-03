@@ -173,25 +173,21 @@ export class FileIndexer {
 
   private visitSymbolOccurrence(node: ts.Node, sym: ts.Symbol): void {
     const range = Range.fromNode(node).toLsif()
-    let role = 0
-    let declarations: ts.Node[] =
-      this.getDeclarationsForPropertyAssignment(node) ?? []
-    const isDefinitionNode = declarations.length === 0 && isDefinition(node)
+
+    const propertyAssignmentDeclarations =
+      this.getDeclarationsForPropertyAssignment(node)
+    const declarations =
+      propertyAssignmentDeclarations ?? getDeclarations(node, sym)
+    const isPropertyAssignment =
+      propertyAssignmentDeclarations &&
+      propertyAssignmentDeclarations.length !== 0
+    const isDefinitionNode = !isPropertyAssignment && isDefinition(node)
+
+    let role = scip.scip.SymbolRole.UnspecifiedSymbolRole
     if (isDefinitionNode) {
       role |= scip.scip.SymbolRole.Definition
     }
-    if (declarations.length === 0) {
-      declarations = isDefinitionNode
-        ? // Don't emit ambiguous definition at definition-site. You can reproduce
-          // ambiguous results by triggering "Go to definition" in VS Code on `Conflict`
-          // in the example below:
-          // export const Conflict = 42
-          // export interface Conflict {}
-          //                  ^^^^^^^^ "Go to definition" shows two results: const and interface.
-          // See https://github.com/sourcegraph/scip-typescript/pull/206 for more details.
-          [node.parent]
-        : sym?.declarations || []
-    }
+
     for (const declaration of declarations) {
       let scipSymbol = this.scipSymbol(declaration)
 
@@ -841,6 +837,21 @@ function isEqualArray<T>(a: T[], b: T[]): boolean {
     }
   }
   return true
+}
+
+function getDeclarations(node: ts.Node, sym: ts.Symbol): ts.Node[] {
+  // Don't emit ambiguous definition at definition-site. You can reproduce
+  // ambiguous results by triggering "Go to definition" in VS Code on `Conflict`
+  // in the example below:
+  // export const Conflict = 42
+  // export interface Conflict {}
+  //                  ^^^^^^^^ "Go to definition" shows two results: const and interface.
+  // See https://github.com/sourcegraph/scip-typescript/pull/206 for more details.
+  if (isDefinition(node)) {
+    return [node.parent]
+  }
+
+  return sym?.declarations || []
 }
 
 function declarationName(node: ts.Node): ts.Node | undefined {
