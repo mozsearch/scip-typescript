@@ -110,7 +110,7 @@ function SomeClass() {}
 
 SomeClass.prototype = {
 //^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
-//        ^^^^^^^^^ reference local 23
+//        ^^^^^^^^^ definition local 23
   someMethod() {},
 //^^^^^^^^^^ definition local 25
 }
@@ -118,7 +118,7 @@ SomeClass.prototype = {
 SomeClass.prototype.someMethod2 = () => {}
 //^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().
 //        ^^^^^^^^^ reference local 23
-//                  ^^^^^^^^^^^ reference local 28
+//                  ^^^^^^^^^^^ definition local 28
 
 new SomeClass().someMethod()
 //  ^^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/SomeClass().

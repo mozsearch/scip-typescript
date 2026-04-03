@@ -896,6 +896,29 @@ function declarationName(node: ts.Node): ts.Node | undefined {
     }
   }
 
+  const isFirstAssignment =
+    node.parent &&
+    ts.isBinaryExpression(node.parent) &&
+    node.parent.operatorToken.kind === ts.SyntaxKind.FirstAssignment &&
+    node === node.parent.left
+
+  if (isFirstAssignment) {
+    const symbol = 'symbol' in node ? (node.symbol as ts.Symbol) : undefined
+
+    if (symbol && (symbol.flags & ts.SymbolFlags.SetAccessor) === 0) {
+      const declarations = symbol.declarations as ts.Node[] | undefined
+
+      if (declarations?.includes(node)) {
+        if (ts.isPropertyAccessExpression(node)) {
+          return node.name
+        }
+        if (ts.isElementAccessExpression(node)) {
+          return node.argumentExpression
+        }
+      }
+    }
+  }
+
   return undefined
 }
 
