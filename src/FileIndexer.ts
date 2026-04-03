@@ -87,7 +87,6 @@ export class FileIndexer {
   }
   private visit(node: ts.Node): void {
     if (
-      ts.isConstructorDeclaration(node) ||
       ts.isIdentifier(node) ||
       ts.isPrivateIdentifier(node) ||
       ts.isStringLiteralLike(node)
@@ -95,6 +94,16 @@ export class FileIndexer {
       const sym = this.getTSSymbolAtLocation(node)
       if (sym) {
         this.visitSymbolOccurrence(node, sym)
+      }
+    }
+
+    if (ts.isConstructorDeclaration(node)) {
+      const keyword = declarationName(node)
+      if (keyword) {
+        const sym = this.getTSSymbolAtLocation(keyword)
+        if (sym) {
+          this.visitSymbolOccurrence(keyword, sym)
+        }
       }
     }
 
@@ -106,10 +115,7 @@ export class FileIndexer {
   //
   // This code is directly based off src/services/goToDefinition.ts.
   private getTSSymbolAtLocation(node: ts.Node): ts.Symbol | undefined {
-    const rangeNode: ts.Node = ts.isConstructorDeclaration(node)
-      ? (node.getFirstToken() ?? node)
-      : node
-    const symbol = this.checker.getSymbolAtLocation(rangeNode)
+    const symbol = this.checker.getSymbolAtLocation(node)
 
     // If this is an alias, and the request came at the declaration location
     // get the aliased symbol instead. This allows for goto def on an import e.g.
@@ -166,13 +172,7 @@ export class FileIndexer {
   }
 
   private visitSymbolOccurrence(node: ts.Node, sym: ts.Symbol): void {
-    const isConstructor = ts.isConstructorDeclaration(node)
-    // For constructors, this method is passed the declaration node and not the identifier node.
-    // In either case, this method needs to get the range of the "name" of the declaration, for constructors we
-    // get the firstToken which contains the text "constructor".
-    const range = Range.fromNode(
-      isConstructor ? (node.getFirstToken() ?? node) : node
-    ).toLsif()
+    const range = Range.fromNode(node).toLsif()
     let role = 0
     let declarations: ts.Node[] =
       this.getDeclarationsForPropertyAssignment(node) ?? []
@@ -181,18 +181,16 @@ export class FileIndexer {
       role |= scip.scip.SymbolRole.Definition
     }
     if (declarations.length === 0) {
-      declarations = ts.isConstructorDeclaration(node)
-        ? [node]
-        : isDefinitionNode
-          ? // Don't emit ambiguous definition at definition-site. You can reproduce
-            // ambiguous results by triggering "Go to definition" in VS Code on `Conflict`
-            // in the example below:
-            // export const Conflict = 42
-            // export interface Conflict {}
-            //                  ^^^^^^^^ "Go to definition" shows two results: const and interface.
-            // See https://github.com/sourcegraph/scip-typescript/pull/206 for more details.
-            [node.parent]
-          : sym?.declarations || []
+      declarations = isDefinitionNode
+        ? // Don't emit ambiguous definition at definition-site. You can reproduce
+          // ambiguous results by triggering "Go to definition" in VS Code on `Conflict`
+          // in the example below:
+          // export const Conflict = 42
+          // export interface Conflict {}
+          //                  ^^^^^^^^ "Go to definition" shows two results: const and interface.
+          // See https://github.com/sourcegraph/scip-typescript/pull/206 for more details.
+          [node.parent]
+        : sym?.declarations || []
     }
     for (const declaration of declarations) {
       let scipSymbol = this.scipSymbol(declaration)
@@ -868,6 +866,15 @@ function declarationName(node: ts.Node): ts.Node | undefined {
   ) {
     return node.name
   }
+
+  if (ts.isConstructorDeclaration(node)) {
+    for (const child of node.getChildren()) {
+      if (child.kind === ts.SyntaxKind.ConstructorKeyword) {
+        return child
+      }
+    }
+  }
+
   return undefined
 }
 
@@ -886,7 +893,5 @@ function declarationName(node: ts.Node): ts.Node | undefined {
  * ```
  */
 function isDefinition(node: ts.Node): boolean {
-  return (
-    declarationName(node.parent) === node || ts.isConstructorDeclaration(node)
-  )
+  return declarationName(node.parent) === node
 }
