@@ -55,7 +55,7 @@ var a = 0
 var a = 1
 //  ^ definition pure-js 1.0.0 src/`main.js`/a.
 print_fib(a)
-//^^^^^^^^ reference pure-js 1.0.0 src/`main.js`/print_fib().
+//^^^^^^^ reference pure-js 1.0.0 src/`main.js`/print_fib().
 //        ^ reference pure-js 1.0.0 src/`main.js`/a.
 
 function forever() {
