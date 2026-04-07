@@ -11,8 +11,8 @@
     "tslint": "tslint -p tsconfig.json --format stylish",
     "eslint": "eslint --cache '**/*.ts?(x)'",
     "build": "node ./node_modules/typescript/bin/tsc -b .",
-    "test": "uvu -r tsm --ignore dist",
-    "update-snapshots": "uvu -r tsm --ignore dist --update-snapshots",
+    "test": "uvu -r tsm --ignore dist --ignore .direnv",
+    "update-snapshots": "uvu -r tsm --ignore dist --ignore .direnv --update-snapshots",
     "prepare": "cd snapshots && yarn && cd input/multi-project && yarn && cd ../pnpm-workspaces && pnpm install"
   },
   "repository": {

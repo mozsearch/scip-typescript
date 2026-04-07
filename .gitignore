@@ -4,3 +4,7 @@ node_modules
 yarn-error.log
 snapshots/output/**/*.scip
 tsconfig.tsbuildinfo
+result
+result-*
+.envrc
+/.direnv
