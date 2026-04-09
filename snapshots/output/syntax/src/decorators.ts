@@ -9,7 +9,7 @@ function MyDecorator(value: Configuration) {
 //                   ^^^^^ definition syntax 1.0.0 src/`decorators.ts`/MyDecorator().(value)
 //                          ^^^^^^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Configuration#
   return function (target: Function) {
-//                 ^^^^^^ definition local 2
+//                 ^^^^^^ definition local 1
 //                         ^^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Function#
 //                         ^^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Function.
 //                         ^^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.core.d.ts`/Function#

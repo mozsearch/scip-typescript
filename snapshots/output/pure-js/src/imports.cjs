@@ -3,55 +3,55 @@
 const {
   SomeExportedClass,
 //^^^^^^^^^^^^^^^^^ definition local 0
-//^^^^^^^^^^^^^^^^^ reference local 3
+//^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.SomeExportedClass#
   SomeAnonymousClass,
-//^^^^^^^^^^^^^^^^^^ definition local 4
-//^^^^^^^^^^^^^^^^^^ reference local 8
+//^^^^^^^^^^^^^^^^^^ definition local 1
+//^^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.SomeAnonymousClass#
   someFunc,
-//^^^^^^^^ definition local 9
-//^^^^^^^^ reference local 12
+//^^^^^^^^ definition local 2
+//^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someFunc.
   someAnonymousFunc,
-//^^^^^^^^^^^^^^^^^ definition local 13
-//^^^^^^^^^^^^^^^^^ reference local 16
+//^^^^^^^^^^^^^^^^^ definition local 3
+//^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someAnonymousFunc.
   someArrowFunc,
-//^^^^^^^^^^^^^ definition local 17
-//^^^^^^^^^^^^^ reference local 20
+//^^^^^^^^^^^^^ definition local 4
+//^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someArrowFunc.
   someValue,
-//^^^^^^^^^ definition local 21
-//^^^^^^^^^ reference local 24
+//^^^^^^^^^ definition local 5
+//^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someValue.
   someObject,
-//^^^^^^^^^^ definition local 25
-//^^^^^^^^^^ reference local 28
+//^^^^^^^^^^ definition local 6
+//^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.
 } = require('./exports.cjs')
 //  ^^^^^^^ reference @types/node 20.16.10 `globals.d.ts`/global/require.
 //          ^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/
 
 new SomeExportedClass().method()
-//  ^^^^^^^^^^^^^^^^^ reference local 2
-//                      ^^^^^^ reference local 30
+//  ^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.SomeExportedClass#
+//                      ^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.SomeExportedClass#method().
 new SomeAnonymousClass().method()
-//  ^^^^^^^^^^^^^^^^^^ reference local 31
-//                       ^^^^^^ reference local 34
+//  ^^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.SomeAnonymousClass#
+//                       ^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.SomeAnonymousClass#method().
 someFunc()
-//^^^^^^ reference local 35
+//^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someFunc.
 someAnonymousFunc()
-//^^^^^^^^^^^^^^^ reference local 36
+//^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someAnonymousFunc.
 someArrowFunc()
-//^^^^^^^^^^^ reference local 37
+//^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someArrowFunc.
 someValue
-//^^^^^^^ reference local 38
+//^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someValue.
 someObject.value
-//^^^^^^^^ reference local 39
+//^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.
 //         ^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/value0:
 someObject.method()
-//^^^^^^^^ reference local 40
-//         ^^^^^^ reference local 42
+//^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.
+//         ^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.method().
 someObject.prop
-//^^^^^^^^ reference local 43
-//         ^^^^ reference local 45
-//         ^^^^ reference local 47
+//^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.
+//         ^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.`<get>prop`().
+//         ^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.`<set>prop`().
 someObject.prop = 3
-//^^^^^^^^ reference local 48
-//         ^^^^ reference local 45
-//         ^^^^ reference local 47
+//^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.
+//         ^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.`<get>prop`().
+//         ^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someObject.`<set>prop`().
 

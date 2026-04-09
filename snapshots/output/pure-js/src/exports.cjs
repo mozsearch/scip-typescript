@@ -1,50 +1,43 @@
 // < definition pure-js 1.0.0 src/`exports.cjs`/
 
 exports.SomeExportedClass = class LocalClassName {
-//^^^^^ reference local 1
-//      ^^^^^^^^^^^^^^^^^ definition local 2
-//                                ^^^^^^^^^^^^^^ reference local 1
+//      ^^^^^^^^^^^^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.SomeExportedClass#
+//                                ^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.SomeExportedClass#
   method() {}
-//^^^^^^ definition local 4
+//^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.SomeExportedClass#method().
 }
 
 module.exports.SomeAnonymousClass = class /*anonymous*/ {
-//^^^^ reference local 6
-//     ^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/
-//             ^^^^^^^^^^^^^^^^^^ definition local 8
+//^^^^ reference local 1
+//             ^^^^^^^^^^^^^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.SomeAnonymousClass#
   method() {}
-//^^^^^^ definition local 11
+//^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.SomeAnonymousClass#method().
 }
 
 exports.someFunc = function localFuncName() {}
-//^^^^^ reference local 14
-//      ^^^^^^^^ definition local 15
-//                          ^^^^^^^^^^^^^ reference local 16
+//      ^^^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someFunc.
+//                          ^^^^^^^^^^^^^ reference pure-js 1.0.0 src/`exports.cjs`/exports.someFunc.
 exports.someAnonymousFunc = function () /*anonymous*/ {}
-//^^^^^ reference local 19
-//      ^^^^^^^^^^^^^^^^^ definition local 20
+//      ^^^^^^^^^^^^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someAnonymousFunc.
 
 exports.someArrowFunc = () => {}
-//^^^^^ reference local 23
-//      ^^^^^^^^^^^^^ definition local 24
+//      ^^^^^^^^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someArrowFunc.
 
 exports.someValue = 4
-//^^^^^ reference local 27
-//      ^^^^^^^^^ definition local 28
+//      ^^^^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someValue.
 
 exports.someObject = {
-//^^^^^ reference local 31
-//      ^^^^^^^^^^ definition local 32
+//      ^^^^^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someObject.
   value: 5,
 //^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/value0:
   method() {},
-//^^^^^^ definition local 34
+//^^^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someObject.method().
   get prop() {
-//    ^^^^ definition local 36
+//    ^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someObject.`<get>prop`().
     return true
   },
   set prop(val) {},
-//    ^^^^ definition local 38
-//         ^^^ definition local 39
+//    ^^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someObject.`<set>prop`().
+//         ^^^ definition pure-js 1.0.0 src/`exports.cjs`/exports.someObject.`<set>prop`().(val)
 }
 

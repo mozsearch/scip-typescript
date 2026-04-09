@@ -115,6 +115,13 @@ export class FileIndexer {
   //
   // This code is directly based off src/services/goToDefinition.ts.
   private getTSSymbolAtLocation(node: ts.Node): ts.Symbol | undefined {
+    // Surprisingly, in `exports.exported = …`, `getSymbolAtLocation` resolves `export` to the assigned symbol.
+    // More surprisingly, in `moduile.exports.exported`, `getSymbolAtLocation` resolves `export` to the file symbol.
+    // Let's just ignore that case.
+    if (isCommonJsExports(node)) {
+      return undefined
+    }
+
     const symbol = this.checker.getSymbolAtLocation(node)
 
     // If this is an alias, and the request came at the declaration location
@@ -449,6 +456,35 @@ export class FileIndexer {
       this.globalSymbolTable.get(node) || this.localSymbolTable.get(node)
     if (fromCache) {
       return fromCache
+    }
+
+    if (isCommonJsExports(node)) {
+      return this.cached(
+        node,
+        ScipSymbol.global(
+          this.scipSymbol(node.getSourceFile()),
+          termDescriptor('exports')
+        )
+      )
+    }
+
+    // When we have one of:
+    // ```
+    // obj.prop = class LocalClassName {}
+    // obj.prop = class {}
+    // obj.prop = function localFunctionName() {}
+    // obj.prop = function () {}
+    // ```
+    // use the SCIP symbol from prop for the class or symbol expression.
+    if (ts.isClassExpression(node) || ts.isFunctionExpression(node)) {
+      if (
+        ts.isBinaryExpression(node.parent) &&
+        node.parent.operatorToken.kind === ts.SyntaxKind.FirstAssignment
+      ) {
+        return this.scipSymbol(node.parent.left)
+      }
+
+      return this.newLocalSymbol(node)
     }
 
     const tsSymbol = this.getTSSymbolAtLocation(node)
@@ -984,4 +1020,31 @@ function declarationName(node: ts.Node): ts.Node | undefined {
  */
 function isDefinition(node: ts.Node): boolean {
   return declarationName(node.parent) === node
+}
+
+function isLeftMostOfAPropertyAccess(node: ts.Node): boolean {
+  let parent: ts.Node = node
+  while (ts.isPropertyAccessExpression(parent.parent)) {
+    if (parent.parent.expression !== parent) {
+      return false
+    }
+    parent = parent.parent
+  }
+
+  return true
+}
+
+function isCommonJsExports(node: ts.Node): boolean {
+  if (ts.isPropertyAccessExpression(node)) {
+    return node.getText() === 'module.exports'
+  }
+
+  if (ts.isIdentifier(node)) {
+    return (
+      node.getText() === 'exports' &&
+      (isLeftMostOfAPropertyAccess(node) || isCommonJsExports(node.parent))
+    )
+  }
+
+  return false
 }
