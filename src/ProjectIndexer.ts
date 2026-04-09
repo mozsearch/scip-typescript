@@ -148,7 +148,7 @@ export class ProjectIndexer {
         visitor.index()
       } catch (error) {
         console.error(
-          `unexpected error indexing project root '${this.options.cwd}'`,
+          `unexpected error indexing file '${sourceFile.fileName}' in project root '${this.options.cwd}'`,
           error
         )
       }
