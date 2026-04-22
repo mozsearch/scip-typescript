@@ -20,6 +20,7 @@ import { Range } from './Range'
 import * as scip from './scip'
 import { ScipSymbol } from './ScipSymbol'
 import * as ts_inline from './TypeScriptInternal'
+import { isObjectDefinePropertyCall } from './utils'
 
 export class FileIndexer {
   private localCounter = new Counter()
@@ -445,6 +446,10 @@ export class FileIndexer {
       return this.getParent(node.parent)
     }
 
+    if (isObjectDefinePropertyCall(node.parent)) {
+      return node.parent.arguments[0]
+    }
+
     if (
       ts.isObjectLiteralExpression(node.parent) ||
       ts.isClassExpression(node.parent)
@@ -578,6 +583,9 @@ export class FileIndexer {
     }
     if (ts.isElementAccessExpression(node)) {
       node = node.argumentExpression
+    }
+    if (isObjectDefinePropertyCall(node)) {
+      node = node.arguments[1]
     }
 
     const ownerNode = this.getParent(node)
