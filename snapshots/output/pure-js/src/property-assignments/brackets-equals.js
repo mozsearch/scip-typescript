@@ -4,11 +4,11 @@ const bracketEquals = {}
 //    ^^^^^^^^^^^^^ definition pure-js 1.0.0 src/property-assignments/`brackets-equals.js`/bracketEquals.
 bracketEquals['prop'] = 0
 //^^^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`brackets-equals.js`/bracketEquals.
-//            ^^^^^^ definition local 1
+//            ^^^^^^ definition pure-js 1.0.0 src/property-assignments/`brackets-equals.js`/bracketEquals.prop.
 bracketEquals.prop
 //^^^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`brackets-equals.js`/bracketEquals.
-//            ^^^^ reference local 1
+//            ^^^^ reference pure-js 1.0.0 src/property-assignments/`brackets-equals.js`/bracketEquals.prop.
 bracketEquals['prop']
 //^^^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`brackets-equals.js`/bracketEquals.
-//            ^^^^^^ reference local 1
+//            ^^^^^^ reference pure-js 1.0.0 src/property-assignments/`brackets-equals.js`/bracketEquals.prop.
 

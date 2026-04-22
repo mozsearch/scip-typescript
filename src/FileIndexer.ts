@@ -437,6 +437,14 @@ export class FileIndexer {
       return this.getParent(node.parent)
     }
 
+    if (ts.isElementAccessExpression(node.parent)) {
+      if (node === node.parent.argumentExpression) {
+        return node.parent.expression
+      }
+
+      return this.getParent(node.parent)
+    }
+
     if (
       ts.isObjectLiteralExpression(node.parent) ||
       ts.isClassExpression(node.parent)
@@ -568,6 +576,9 @@ export class FileIndexer {
     if (ts.isPropertyAccessExpression(node)) {
       node = node.name
     }
+    if (ts.isElementAccessExpression(node)) {
+      node = node.argumentExpression
+    }
 
     const ownerNode = this.getParent(node)
     const owner = this.scipSymbol(ownerNode)
@@ -657,21 +668,22 @@ export class FileIndexer {
     if (ts.isTypeLiteralNode(node)) {
       return metaDescriptor('typeLiteral' + this.localCounter.next().toString())
     }
-    if (ts.isIdentifier(node)) {
+    if (ts.isIdentifier(node) || ts.isStringLiteralLike(node)) {
+      const text = node.text
       const sym = this.getTSSymbolAtLocation(node)
       if (sym) {
         if (sym.flags & ts.SymbolFlags.Class) {
-          return typeDescriptor(node.getText())
+          return typeDescriptor(text)
         }
 
         if (
           sym.flags & ts.SymbolFlags.Function ||
           sym.flags & ts.SymbolFlags.Method
         ) {
-          return methodDescriptor(node.getText())
+          return methodDescriptor(text)
         }
       }
-      return termDescriptor(node.getText())
+      return termDescriptor(text)
     }
     return undefined
   }
