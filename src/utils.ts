@@ -1,6 +1,6 @@
 import ts from 'typescript'
 
-function isEntityNameExpression(
+export function isEntityNameExpression(
   node: ts.Node
 ): node is ts.EntityNameExpression {
   return ts.isEntityName(node) && ts.isExpression(node)

@@ -1067,7 +1067,10 @@ function declarationName(node: ts.Node): ts.Node | undefined {
  * ^^^^^^^^^^^^^^^^^^^^^ node.parent
  * ```
  */
-function isDefinition(node: ts.Node): boolean {
+function isDefinition(node: ts.Node & { forceDefinition?: boolean }): boolean {
+  if (node.forceDefinition !== undefined) {
+    return node.forceDefinition
+  }
   return declarationName(node.parent) === node
 }
 
