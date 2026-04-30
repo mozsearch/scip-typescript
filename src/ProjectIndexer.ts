@@ -5,7 +5,6 @@ import * as ts from 'typescript'
 
 import { GlobalCache, ProjectOptions } from './CommandLineOptions'
 import { FileIndexer } from './FileIndexer'
-import { Input } from './Input'
 import { Packages } from './Packages'
 import * as scip from './scip'
 import { ScipSymbol } from './ScipSymbol'
@@ -133,11 +132,9 @@ export class ProjectIndexer {
         relative_path: path.relative(this.options.cwd, sourceFile.fileName),
         occurrences: [],
       })
-      const input = new Input(sourceFile.fileName, sourceFile.getText())
       const visitor = new FileIndexer(
         this.checker,
         this.options,
-        input,
         document,
         this.symbolCache,
         this.hasConstructor,

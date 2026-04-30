@@ -13,7 +13,6 @@ import {
   typeDescriptor,
   typeParameterDescriptor,
 } from './Descriptor'
-import { Input } from './Input'
 import { Packages } from './Packages'
 import { formatByteSizeAsHumanReadable } from './parseHumanByteSizeIntoNumber'
 import { Range } from './Range'
@@ -30,7 +29,6 @@ export class FileIndexer {
   constructor(
     public readonly checker: ts.TypeChecker,
     public readonly options: ProjectOptions,
-    public readonly input: Input,
     public readonly document: scip.scip.Document,
     public readonly globalSymbolTable: Map<ts.Node, ScipSymbol>,
     public readonly globalConstructorTable: Map<ts.ClassDeclaration, boolean>,
