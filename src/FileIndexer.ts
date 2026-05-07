@@ -187,6 +187,9 @@ export class FileIndexer {
   }
 
   private visitSymbolOccurrence(node: ts.Node, sym: ts.Symbol): void {
+    if (node.pos < 0 || node.end < 0) {
+      return
+    }
     const range = Range.fromNode(node).toLsif()
 
     const propertyAssignmentDeclarations =

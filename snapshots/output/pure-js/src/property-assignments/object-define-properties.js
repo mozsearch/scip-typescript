@@ -8,9 +8,9 @@ Object.defineProperties(objectDefineProperties, {
 //     ^^^^^^^^^^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/ObjectConstructor#defineProperties().
 //                      ^^^^^^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.
   prop: 0,
-//^^^^ definition pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/prop0:
+//^^^^ definition pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.prop.
   accessors: {
-//^^^^^^^^^ definition pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/accessors0:
+//^^^^^^^^^ definition pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.accessors.
     get() {
 //  ^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/PropertyDescriptor#get().
       return true
@@ -25,10 +25,11 @@ Object.defineProperties(objectDefineProperties, {
 })
 objectDefineProperties.prop
 //^^^^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.
+//                     ^^^^ reference pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.prop.
 objectDefineProperties.accessors
 //^^^^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.
 //                     ^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.accessors.
 objectDefineProperties.accessors = 1
 //^^^^^^^^^^^^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.
-//                     ^^^^^^^^^ definition pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.accessors.
+//                     ^^^^^^^^^ reference pure-js 1.0.0 src/property-assignments/`object-define-properties.js`/objectDefineProperties.accessors.
 

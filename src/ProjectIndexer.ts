@@ -8,6 +8,7 @@ import { FileIndexer } from './FileIndexer'
 import { Packages } from './Packages'
 import * as scip from './scip'
 import { ScipSymbol } from './ScipSymbol'
+import { transformSourceFile } from './transformers/transformSourceFile'
 
 function createCompilerHost(
   cache: GlobalCache,
@@ -49,19 +50,23 @@ function createCompilerHost(
         return sourceFile
       }
     }
-    const result = hostCopy.getSourceFile(
+
+    const original = hostCopy.getSourceFile(
       fileName,
       languageVersion,
       onError,
       shouldCreateNewSourceFile
     )
-    if (result !== undefined) {
+    if (original === undefined) {
       // Don't cache undefined results even if they could be cached
       // theoretically. The big performance gains from this cache come from
       // caching non-undefined results.
-      cache.sources.set(fileName, [result, languageVersion])
+      return undefined
     }
-    return result
+
+    const transformed = transformSourceFile(original, compilerOptions)
+    cache.sources.set(fileName, [transformed, languageVersion])
+    return transformed
   }
   return host
 }
