@@ -10,8 +10,8 @@ export function shorthandPropertyAssignment() {
   const a = 'a'
 //      ^ definition local 0
   return { a }
-//         ^ definition syntax 1.0.0 src/`property-assignment.ts`/a1:
 //         ^ reference local 0
+//         ^ definition syntax 1.0.0 src/`property-assignment.ts`/a1:
 }
 type A = { a: string; b: number }
 //   ^ definition syntax 1.0.0 src/`property-assignment.ts`/A#

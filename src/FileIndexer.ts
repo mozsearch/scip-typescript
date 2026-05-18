@@ -62,6 +62,15 @@ export class FileIndexer {
 
     this.emitSourceFileOccurrence()
     this.visit(this.sourceFile)
+
+    // Deduplicate occurrences
+    // Duplicate occurrences occur mostly because of transformers, for instance when an Object.assign call is turned into multiple assignations
+    this.document.occurrences = this.document.occurrences
+      .toSorted(compareOccurrences)
+      .filter(
+        (item, position, array) =>
+          position === 0 || !isEqualOccurrence(item, array[position - 1])
+      )
   }
   private emitSourceFileOccurrence(): void {
     const symbol = this.scipSymbol(this.sourceFile)
@@ -908,27 +917,45 @@ function scriptElementKind(
   return ts.ScriptElementKind.unknown
 }
 
+function compareOccurrences(
+  lhs: scip.scip.Occurrence,
+  rhs: scip.scip.Occurrence
+): number {
+  function compareMember(member: keyof scip.scip.Occurrence): number {
+    if (lhs[member] < rhs[member]) {
+      return -1
+    }
+    if (rhs[member] < lhs[member]) {
+      return 1
+    }
+    return 0
+  }
+
+  return (
+    compareArrays(lhs.range, rhs.range) ||
+    compareMember('symbol') ||
+    compareMember('symbol_roles')
+  )
+}
+
 function isEqualOccurrence(
   a: scip.scip.Occurrence,
   b: scip.scip.Occurrence
 ): boolean {
-  return (
-    a.symbol_roles === b.symbol_roles &&
-    a.symbol === b.symbol &&
-    isEqualArray(a.range, b.range)
-  )
+  return compareOccurrences(a, b) === 0
 }
 
-function isEqualArray<T>(a: T[], b: T[]): boolean {
-  if (a.length !== b.length) {
-    return false
-  }
-  for (const [index, element] of a.entries()) {
-    if (element !== b[index]) {
-      return false
+function compareArrays<T>(a: T[], b: T[]): number {
+  const minLength = Math.min(a.length, b.length)
+  for (let index = 0; index < minLength; ++index) {
+    if (a[index] < b[index]) {
+      return -1
+    }
+    if (b[index] < a[index]) {
+      return 1
     }
   }
-  return true
+  return a.length - b.length
 }
 
 function getDeclarations(node: ts.Node, sym: ts.Symbol): ts.Node[] {

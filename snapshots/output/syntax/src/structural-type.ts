@@ -2,28 +2,28 @@
 
 export function foo(): Promise<{ member: number }> {
 //              ^^^ definition syntax 1.0.0 src/`structural-type.ts`/foo().
-//                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#
 //                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.iterable.d.ts`/Promise#
 //                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.promise.d.ts`/Promise.
 //                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.symbol.wellknown.d.ts`/Promise#
 //                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2018.promise.d.ts`/Promise#
+//                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#
 //                               ^^^^^^ definition syntax 1.0.0 src/`structural-type.ts`/foo().Promise:typeLiteral0:member.
   return Promise.resolve({ member: 42 })
-//       ^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#
 //       ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.iterable.d.ts`/Promise#
 //       ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.promise.d.ts`/Promise.
 //       ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.symbol.wellknown.d.ts`/Promise#
 //       ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2018.promise.d.ts`/Promise#
+//       ^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#
 //               ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.promise.d.ts`/PromiseConstructor#resolve().
 //                         ^^^^^^ reference syntax 1.0.0 src/`structural-type.ts`/member0:
 }
 export function bar(): Promise<number> {
 //              ^^^ definition syntax 1.0.0 src/`structural-type.ts`/bar().
-//                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#
 //                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.iterable.d.ts`/Promise#
 //                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.promise.d.ts`/Promise.
 //                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.symbol.wellknown.d.ts`/Promise#
 //                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2018.promise.d.ts`/Promise#
+//                     ^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#
   return foo().then(x => x.member)
 //       ^^^ reference syntax 1.0.0 src/`structural-type.ts`/foo().
 //             ^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#then().
@@ -33,11 +33,11 @@ export function bar(): Promise<number> {
 }
 export function bar2(): Promise<number> {
 //              ^^^^ definition syntax 1.0.0 src/`structural-type.ts`/bar2().
-//                      ^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#
 //                      ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.iterable.d.ts`/Promise#
 //                      ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.promise.d.ts`/Promise.
 //                      ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2015.symbol.wellknown.d.ts`/Promise#
 //                      ^^^^^^^ reference typescript 6.0.3 lib/`lib.es2018.promise.d.ts`/Promise#
+//                      ^^^^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#
   return foo().then(({ member }) => member)
 //       ^^^ reference syntax 1.0.0 src/`structural-type.ts`/foo().
 //             ^^^^ reference typescript 6.0.3 lib/`lib.es5.d.ts`/Promise#then().
