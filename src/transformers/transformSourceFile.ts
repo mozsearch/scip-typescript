@@ -1,9 +1,14 @@
 import ts from 'typescript'
 
+import { chromeUtilsTransformer } from './ChromeUtils'
 import { definePropertiesTransformer } from './DefineProperties'
 import { objectAssignTransformer } from './ObjectAssign'
 
-const TRANSFORMERS = [objectAssignTransformer, definePropertiesTransformer]
+const TRANSFORMERS = [
+  objectAssignTransformer,
+  definePropertiesTransformer,
+  chromeUtilsTransformer,
+]
 
 /// The transforms don't set Node.parent, don't propagate NodeFlags.JavaScriptFile and set NodeFlags.Synthesized which cause issues with some analyses.
 ///
