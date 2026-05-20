@@ -1,10 +1,10 @@
 {
   "extends": "@sourcegraph/tsconfig",
   "compilerOptions": {
-    "target": "es2019",
-    "module": "commonjs",
+    "target": "es2025",
+    "module": "nodenext",
     "allowJs": false,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "lib": ["esnext"],
     "rootDir": ".",
     "allowSyntheticDefaultImports": true,

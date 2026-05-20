@@ -9,11 +9,11 @@ const maximumFileTraversalCount = 1_000
 
 /** The TS config we use to index JavaScript files. */
 export const allowJsConfig = JSON.stringify({
-  compilerOptions: { allowJs: true },
+  compilerOptions: { allowJs: true, types: ['*'] },
 })
 
 /** The TS config we use to index only TypeScript files. */
-export const noJsConfig = JSON.stringify({})
+export const noJsConfig = JSON.stringify({ compilerOptions: { types: ['*'] } })
 
 /**
  * Returns the configuration that should be used for tsconfig.json in the provided path.
