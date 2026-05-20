@@ -11,8 +11,8 @@
     "tslint": "tslint -p tsconfig.json --format stylish",
     "eslint": "eslint --cache '**/*.ts?(x)'",
     "build": "node ./node_modules/typescript/bin/tsc -b .",
-    "test": "uvu -r tsm --ignore dist --ignore .direnv",
-    "update-snapshots": "uvu -r tsm --ignore dist --ignore .direnv --update-snapshots",
+    "test": "uvu -r tsx --ignore dist --ignore .direnv",
+    "update-snapshots": "uvu -r tsx --ignore dist --ignore .direnv --update-snapshots",
     "prepare": "cd snapshots && yarn && cd input/multi-project && yarn && cd ../pnpm-workspaces && pnpm install"
   },
   "repository": {
@@ -56,8 +56,7 @@
     "eslint-plugin-unused-imports": "^4.1.4",
     "pnpm": "9.11.0",
     "prettier": "3.5.3",
-    "tsm": "^2.3.0",
-    "tsx": "^4.19.1",
+    "tsx": "^4.22.3",
     "typescript-eslint": "7.18.0",
     "uvu": "^0.5.6"
   }

@@ -25,7 +25,7 @@
 
   mainYarnOfflineCache = fetchYarnDeps {
     yarnLock = src + "/yarn.lock";
-    hash = "sha256-e+KdxE5tuOhcIJ3nXK9vCGSMsFmZyE9knJLrRlT6nYI=";
+    hash = "sha256-sG31c0HQJtfK2+4mqbVlviL2URMy4BTo24SdcEm2Oco=";
   };
 
   snapshotsYarnOfflineCache = fetchYarnDeps {
