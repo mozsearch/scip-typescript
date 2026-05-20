@@ -6,8 +6,8 @@
   "bin": "dist/src/main.js",
   "main": "./dist/src/main.js",
   "scripts": {
-    "prettier": "prettier --write --list-different '**/*.{ts,js?(on),md,yml}'",
-    "prettier-check": "prettier --check '**/*.{ts,js?(on),md,yml}'",
+    "prettier": "prettier --write --list-different '**/*.{ts,mjs,cjs,js?(on),md,yml}'",
+    "prettier-check": "prettier --check '**/*.{ts,mjs,cjs,js?(on),md,yml}'",
     "tslint": "tslint -p tsconfig.json --format stylish",
     "eslint": "eslint --cache '**/*.ts?(x)'",
     "build": "node ./node_modules/typescript/bin/tsc -b .",
@@ -40,7 +40,6 @@
   },
   "devDependencies": {
     "@sourcegraph/eslint-config": "0.37.1",
-    "@sourcegraph/prettierrc": "3.0.3",
     "@sourcegraph/tsconfig": "4.0.1",
     "@types/diff": "7.0.1",
     "@types/google-protobuf": "3.15.12",
@@ -55,7 +54,7 @@
     "eslint-plugin-unicorn": "^55.0.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "pnpm": "9.11.0",
-    "prettier": "3.5.3",
+    "prettier": "3.8.3",
     "tsx": "^4.22.3",
     "typescript-eslint": "7.18.0",
     "uvu": "^0.5.6"

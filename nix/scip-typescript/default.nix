@@ -15,7 +15,7 @@
       ../../snapshots
       ../../.eslintrc.js
       ../../.prettierignore
-      ../../.prettierrc
+      ../../prettier.config.mjs
       ../../package.json
       ../../renovate.json
       ../../tsconfig.json
@@ -25,7 +25,7 @@
 
   mainYarnOfflineCache = fetchYarnDeps {
     yarnLock = src + "/yarn.lock";
-    hash = "sha256-sG31c0HQJtfK2+4mqbVlviL2URMy4BTo24SdcEm2Oco=";
+    hash = "sha256-c/U0A0IK6gQLr8VRXaEEk3CEt5BI6cU5ISHtn6otjyU=";
   };
 
   snapshotsYarnOfflineCache = fetchYarnDeps {
