@@ -157,8 +157,7 @@ export function formatSnapshot(
       relationships.sort((a, b) => a.symbol.localeCompare(b.symbol))
 
       for (const relationship of relationships) {
-        out.push(prefix)
-        out.push('relationship')
+        out.push(prefix, 'relationship')
         if (relationship.is_implementation) {
           out.push(' implementation')
         }
@@ -197,8 +196,10 @@ export function formatSnapshot(
       return
     }
 
-    out.push(commentSyntax)
-    out.push(' '.repeat(Math.max(1, enclosingRange.range.start.character - 2)))
+    out.push(
+      commentSyntax,
+      ' '.repeat(Math.max(1, enclosingRange.range.start.character - 2))
+    )
 
     if (enclosingRange.range.start.character < 2) {
       out.push('<')
@@ -213,9 +214,11 @@ export function formatSnapshot(
     } else {
       out.push(' start ')
     }
-    out.push('enclosing_range ')
-    out.push(symbolNameForSnapshot(enclosingRange.symbol))
-    out.push('\n')
+    out.push(
+      'enclosing_range ',
+      symbolNameForSnapshot(enclosingRange.symbol),
+      '\n'
+    )
   }
 
   doc.occurrences.sort(occurrencesByLine)
@@ -233,11 +236,13 @@ export function formatSnapshot(
       if (range.start.character === 0 && range.end.character === 0) {
         const isDefinition =
           (occurrence.symbol_roles & scip.SymbolRole.Definition) > 0
-        out.push(commentSyntax)
-        out.push(' < ')
-        out.push(isDefinition ? 'definition' : 'reference')
-        out.push(' ')
-        out.push(symbolNameForSnapshot(occurrence.symbol))
+        out.push(
+          commentSyntax,
+          ' < ',
+          isDefinition ? 'definition' : 'reference',
+          ' ',
+          symbolNameForSnapshot(occurrence.symbol)
+        )
         pushDoc(range, occurrence.symbol, isDefinition, true)
         out.push('\n')
 
@@ -250,9 +255,7 @@ export function formatSnapshot(
       pushEnclosingRange(enclosingRange)
     }
 
-    out.push('')
-    out.push(line)
-    out.push('\n')
+    out.push('', line, '\n')
     while (
       occurrenceIndex < doc.occurrences.length &&
       doc.occurrences[occurrenceIndex].range[0] === lineNumber
@@ -285,12 +288,10 @@ export function formatSnapshot(
       if (caretLength < 0) {
         throw new Error(input.format(range, 'negative length occurrence!'))
       }
-      out.push('^'.repeat(caretLength))
-      out.push(' ')
+      out.push('^'.repeat(caretLength), ' ')
       const isDefinition =
         (occurrence.symbol_roles & scip.SymbolRole.Definition) > 0
-      out.push(isDefinition ? 'definition' : 'reference')
-      out.push(' ')
+      out.push(isDefinition ? 'definition' : 'reference', ' ')
       const symbol = symbolNameForSnapshot(occurrence.symbol)
       out.push(symbol.replace('\n', '|'))
 
@@ -299,8 +300,10 @@ export function formatSnapshot(
       if (occurrence.diagnostics && occurrence.diagnostics.length > 0) {
         for (const diagnostic of occurrence.diagnostics) {
           const indent = ' '.repeat(range.start.character - 2)
-          out.push(commentSyntax + indent)
-          out.push(`diagnostic ${scip.Severity[diagnostic.severity]}:\n`)
+          out.push(
+            commentSyntax + indent,
+            `diagnostic ${scip.Severity[diagnostic.severity]}:\n`
+          )
           if (diagnostic.message) {
             for (const messageLine of diagnostic.message.split('\n')) {
               out.push(`${commentSyntax + indent}> ${messageLine}\n`)

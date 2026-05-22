@@ -13,7 +13,7 @@
     fileset = lib.fileset.unions [
       ../../src
       ../../snapshots
-      ../../.eslintrc.js
+      ../../eslint.config.mjs
       ../../.prettierignore
       ../../prettier.config.mjs
       ../../package.json
@@ -25,7 +25,7 @@
 
   mainYarnOfflineCache = fetchYarnDeps {
     yarnLock = src + "/yarn.lock";
-    hash = "sha256-c/U0A0IK6gQLr8VRXaEEk3CEt5BI6cU5ISHtn6otjyU=";
+    hash = "sha256-/hqeOqe7S2Vv1jasSU85UF41iNt3XrGKmpubbAp9wd0=";
   };
 
   snapshotsYarnOfflineCache = fetchYarnDeps {

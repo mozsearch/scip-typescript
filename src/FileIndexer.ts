@@ -837,8 +837,8 @@ function isEqualArray<T>(a: T[], b: T[]): boolean {
   if (a.length !== b.length) {
     return false
   }
-  for (let index = 0; index < a.length; index++) {
-    if (a[index] !== b[index]) {
+  for (const [index, element] of a.entries()) {
+    if (element !== b[index]) {
       return false
     }
   }
@@ -873,7 +873,7 @@ function declarationName(node: ts.Node): ts.Node | undefined {
 
 /**
  * For example:
- *
+ * ```
  * const a = 1
  *       ^ node
  *       ^ node.parent.name
@@ -883,6 +883,7 @@ function declarationName(node: ts.Node): ts.Node | undefined {
  *          ^ node
  *          ^ node.parent.name
  * ^^^^^^^^^^^^^^^^^^^^^ node.parent
+ * ```
  */
 function isDefinition(node: ts.Node): boolean {
   return (

@@ -19,7 +19,7 @@ export const noJsConfig = JSON.stringify({ compilerOptions: { types: ['*'] } })
  * Returns the configuration that should be used for tsconfig.json in the provided path.
  *
  * If the directory contains at least one `*.{ts,tsx}` file then the config will be empty (`{}`).
- * If the directory doesn't contains one `*.{ts,tsx}` file then the config will
+ * If the directory doesn't contains one `*.{ts,tsx}` file then the config will.
  */
 export function inferTsconfig(projectPath: string): string {
   let hasTypeScriptFile = false
