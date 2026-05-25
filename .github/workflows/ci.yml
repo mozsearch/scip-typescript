@@ -9,10 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x] # NOTE: Keep in sync with README.
+        node-version: [22.x, 24.x, 26.x] # NOTE: Keep in sync with README.
         # See Node.js release schedule: https://nodejs.org/en/about/previous-releases
-        # - v18 EOL: Apr 30 2025
-        # - v20 EOL: Apr 30 2026
+        # - v22 EOL: Apr 30 2027
+        # - v24 EOL: Apr 30 2028
+        # - v26 EOL: Apr 30 2029
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
