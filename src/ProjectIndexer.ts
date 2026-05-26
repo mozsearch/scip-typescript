@@ -20,6 +20,7 @@ function createCompilerHost(
     return host
   }
   const hostCopy = { ...host }
+  host.getCurrentDirectory = () => projectOptions.cwd
   host.getParsedCommandLine = (fileName: string) => {
     if (!hostCopy.getParsedCommandLine) {
       return undefined
