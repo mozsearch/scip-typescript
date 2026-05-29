@@ -1048,6 +1048,10 @@ function declarationName(node: ts.Node): ts.Node | undefined {
     }
   }
 
+  if (isObjectDefinePropertyCall(node)) {
+    return node.arguments[1]
+  }
+
   return undefined
 }
 
