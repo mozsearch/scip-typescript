@@ -89,7 +89,10 @@ export class FileIndexer {
     this.document.symbols.push(
       new scip.scip.SymbolInformation({
         symbol: symbol.value,
-        documentation: ['```ts\nmodule "' + moduleName + '"\n```'],
+        signature_documentation: new scip.scip.Signature({
+          language: 'ts',
+          text: `module ${moduleName}`,
+        }),
       })
     )
   }
@@ -348,20 +351,22 @@ export class FileIndexer {
     declaration: ts.Node,
     symbol: ScipSymbol
   ): void {
-    const documentation = [
-      '```ts\n' +
-        this.hideWorkingDirectory(this.signatureForDocumentation(node, sym)) +
-        '\n```',
-    ]
+    const signature = this.hideWorkingDirectory(
+      this.signatureForDocumentation(node, sym)
+    )
+
     const docstring = sym.getDocumentationComment(this.checker)
-    if (docstring.length > 0) {
-      documentation.push(ts.displayPartsToString(docstring))
-    }
+    const documentation =
+      docstring.length > 0 ? [ts.displayPartsToString(docstring)] : undefined
 
     this.document.symbols.push(
       new scip.scip.SymbolInformation({
         symbol: symbol.value,
         documentation,
+        signature_documentation: new scip.scip.Signature({
+          language: 'ts',
+          text: signature,
+        }),
         relationships: this.relationships(declaration, symbol),
       })
     )
