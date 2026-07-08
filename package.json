@@ -59,6 +59,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "pnpm": "9.11.0",
     "prettier": "3.8.3",
+    "protoc-gen-ts": "^0.8.7",
     "tsx": "^4.22.3",
     "typescript-eslint": "^8.59.4",
     "uvu": "^0.5.6"
