@@ -172,7 +172,7 @@ function loadConfigFile(file: string): ts.ParsedCommandLine | undefined {
   const config = readResult.config
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (config.compilerOptions === undefined) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     config.compilerOptions = defaultCompilerOptions(file)
   } else {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
