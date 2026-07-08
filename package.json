@@ -57,7 +57,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-unicorn": "^64.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
-    "pnpm": "9.11.0",
+    "pnpm": "10.34.4",
     "prettier": "3.8.3",
     "protoc-gen-ts": "^0.8.7",
     "tsx": "^4.22.3",
