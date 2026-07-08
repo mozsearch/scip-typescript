@@ -2238,10 +2238,10 @@ pluralize@^8.0.0:
   resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-8.0.0.tgz#1a6fa16a38d12a1901e0320fa017051c539ce3b1"
   integrity sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==
 
-pnpm@9.11.0:
-  version "9.11.0"
-  resolved "https://registry.yarnpkg.com/pnpm/-/pnpm-9.11.0.tgz#4cd20e68438613738e8f2bc9aece61eaa6b3e649"
-  integrity sha512-CiA/+u1aP2MkLNBkyPtYkjZsED4ygHkxj3gGLyTqjJ1QvGpHqjVnyr79gk0XDnj6J0XtHxaxMuFkNhRrdojxmw==
+pnpm@10.34.4:
+  version "10.34.4"
+  resolved "https://registry.yarnpkg.com/pnpm/-/pnpm-10.34.4.tgz#4a602c6225af008714592e19c1372d885e98256a"
+  integrity sha512-h2i+VSAK4/Iia2Un/Momh+FLxOXxLXchoPJdo99HkVF3BYZI20F3uvNIEg+guidS2NjZP2vq8f5krhjajelhrw==
 
 possible-typed-array-names@^1.0.0:
   version "1.1.0"
