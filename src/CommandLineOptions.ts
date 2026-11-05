@@ -96,7 +96,7 @@ export function mainCommand(
     )
     .option(
       '--classic-scripts',
-      "keep classic scripts' ChromeUtils.importESModule() and defineESModuleGetters() calls from making them modules (as the require() calls they're otherwise transformed into would), so that their top-level declarations stay globals, and getters defined on their global are globals",
+      "keep classic scripts' ChromeUtils.importESModule() and defineESModuleGetters() calls from making them modules (as the require() calls they're otherwise transformed into would), so that their top-level declarations stay globals, getters defined on their global are globals, and so are their top-level assignments to their global's properties (ex: `globalThis.name = value`)",
       false
     )
     .option(

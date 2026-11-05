@@ -1,6 +1,7 @@
 import ts from 'typescript'
 
 import { chromeUtilsTransformerFor } from './ChromeUtils'
+import { classicScriptGlobalsTransformer } from './ClassicScripts'
 import { definePropertiesTransformer } from './DefineProperties'
 import { objectAssignTransformer } from './ObjectAssign'
 
@@ -12,6 +13,7 @@ function transformers(
     objectAssignTransformer,
     definePropertiesTransformer,
     chromeUtilsTransformerFor(classicScripts),
+    ...(classicScripts ? [classicScriptGlobalsTransformer] : []),
   ]
 }
 
