@@ -1,7 +1,10 @@
 import ts from 'typescript'
 
 import { chromeUtilsTransformerFor } from './ChromeUtils'
-import { classicScriptGlobalsTransformer } from './ClassicScripts'
+import {
+  classicScriptGlobalsTransformer,
+  unwrapTransformer,
+} from './ClassicScripts'
 import { definePropertiesTransformer } from './DefineProperties'
 import { objectAssignTransformer } from './ObjectAssign'
 
@@ -41,8 +44,16 @@ function fixupNodeTree(node: ts.Node, parent?: ts.Node): void {
 export function transformSourceFile(
   source: ts.SourceFile,
   compilerOptions: ts.CompilerOptions,
-  classicScripts = false
+  classicScripts = false,
+  unwrap = false
 ): ts.SourceFile {
+  // (Unwrapped first, so that the other transformers see its top level;
+  // see ClassicScripts.ts.)
+  if (unwrap) {
+    source = ts.transform(source, [unwrapTransformer], compilerOptions)
+      .transformed[0]
+    fixupNodeTree(source)
+  }
   const transformed = ts.transform(
     source,
     transformers(classicScripts),

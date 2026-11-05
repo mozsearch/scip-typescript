@@ -15,7 +15,8 @@ function createCompilerHost(
   cache: GlobalCache,
   compilerOptions: ts.CompilerOptions,
   projectOptions: ProjectOptions,
-  moduleFiles?: Set<string>
+  moduleFiles?: Set<string>,
+  unwrapFiles?: Set<string>
 ): ts.CompilerHost {
   const host = ts.createCompilerHost(compilerOptions)
   if (!projectOptions.globalCaches) {
@@ -49,7 +50,8 @@ function createCompilerHost(
     // (A module file, forced to be a module whatever its syntax, is cached
     // apart from the file as itself, which another project can have.)
     const forced = moduleFiles?.has(fileName) ?? false
-    const key = forced ? `${fileName}\0module` : fileName
+    const unwrap = unwrapFiles?.has(fileName) ?? false
+    const key = `${fileName}${forced ? '\0module' : ''}${unwrap ? '\0unwrap' : ''}`
     const fromCache = cache.sources.get(key)
     if (fromCache !== undefined) {
       const [sourceFile, cachedLanguageVersion] = fromCache
@@ -74,7 +76,8 @@ function createCompilerHost(
     const transformed = transformSourceFile(
       original,
       compilerOptions,
-      projectOptions.classicScripts
+      projectOptions.classicScripts,
+      unwrap
     )
     cache.sources.set(key, [transformed, languageVersion])
     return transformed
@@ -155,11 +158,19 @@ export class ProjectIndexer {
       options.projectRoot,
       'scipModuleFiles'
     )
+    // (And its `scipUnwrapFiles` are unwrapped, ex: web-platform-tests'
+    // testharness.js; see ClassicScripts.ts.)
+    const unwrapFiles = configFiles(
+      config,
+      options.projectRoot,
+      'scipUnwrapFiles'
+    )
     const host = createCompilerHost(
       cache,
       compilerOptions,
       options,
-      moduleFiles
+      moduleFiles,
+      unwrapFiles
     )
     this.program = ts.createProgram(config.fileNames, compilerOptions, host)
     this.checker = this.program.getTypeChecker()

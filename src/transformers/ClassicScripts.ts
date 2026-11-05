@@ -8,7 +8,8 @@
 // into
 // var name = value
 //
-// and not declaring what's the global's own already:
+// and not declaring what's the global's own already (as an unwrapped script's
+// top level can have):
 //
 // var name = global.name (ex: `var Error = global.Error`)
 // into
@@ -16,6 +17,15 @@
 //
 // and `var undefined` (ex: `const undefined = void 0`, into `void 0`),
 // leaving `global.name = name` as it is (whose property is the global's).
+//
+// And of the scripts a project lists in its `scipUnwrapFiles`, ex:
+// web-platform-tests' testharness.js, which defines its API in a function it
+// calls at once, exposing its functions as its global's properties by their
+// names:
+//
+// (function (param) { body })(arg) (or `.call(arg0, arg)`), at its top level
+// into
+// var param = arg; body
 
 import ts from 'typescript'
 
@@ -155,3 +165,75 @@ export const classicScriptGlobalsTransformer: ts.TransformerFactory<
     ? ts.factory.updateSourceFile(sourceFile, statements)
     : sourceFile
 }
+
+/** The function and arguments of an immediately called function expression. */
+function iife(
+  statement: ts.Statement
+):
+  | [ts.FunctionExpression | ts.ArrowFunction, readonly ts.Expression[]]
+  | undefined {
+  if (
+    !ts.isExpressionStatement(statement) ||
+    !ts.isCallExpression(statement.expression)
+  ) {
+    return undefined
+  }
+  const call = statement.expression
+  let callee: ts.Expression = call.expression
+  let args: readonly ts.Expression[] = call.arguments
+  while (ts.isParenthesizedExpression(callee)) {
+    callee = callee.expression
+  }
+  // (`(function () {}).call(thisArg, ...)`)
+  if (
+    ts.isPropertyAccessExpression(callee) &&
+    ts.idText(callee.name) === 'call'
+  ) {
+    callee = callee.expression
+    args = call.arguments.slice(1)
+  }
+  while (ts.isParenthesizedExpression(callee)) {
+    callee = callee.expression
+  }
+  return ts.isFunctionExpression(callee) ||
+    (ts.isArrowFunction(callee) && ts.isBlock(callee.body))
+    ? [callee, args]
+    : undefined
+}
+
+export const unwrapTransformer: ts.TransformerFactory<ts.SourceFile> =
+  () => sourceFile => {
+    let changed = false
+    const statements = sourceFile.statements.flatMap(statement => {
+      const called = iife(statement)
+      if (!called) {
+        return [statement]
+      }
+      changed = true
+      const [func, args] = called
+      const bindings: ts.Statement[] = func.parameters.flatMap((param, i) =>
+        ts.isIdentifier(param.name)
+          ? [
+              ts.factory.createVariableStatement(
+                undefined,
+                ts.factory.createVariableDeclarationList(
+                  [
+                    ts.factory.createVariableDeclaration(
+                      param.name,
+                      undefined,
+                      undefined,
+                      args[i] ?? ts.factory.createIdentifier('undefined')
+                    ),
+                  ],
+                  ts.NodeFlags.None
+                )
+              ),
+            ]
+          : []
+      )
+      return [...bindings, ...(func.body as ts.Block).statements]
+    })
+    return changed
+      ? ts.factory.updateSourceFile(sourceFile, statements)
+      : sourceFile
+  }

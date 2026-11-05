@@ -1,6 +1,9 @@
 import { test } from 'uvu'
 
-import { classicScriptGlobalsTransformer } from './ClassicScripts'
+import {
+  classicScriptGlobalsTransformer,
+  unwrapTransformer,
+} from './ClassicScripts'
 import { checkTransform } from './testUtils'
 
 test('globals of a classic script', () => {
@@ -55,6 +58,57 @@ globalThis.x = 1;
     `
 export {};
 globalThis.x = 1;
+`
+  )
+})
+
+test('unwrap', () => {
+  checkTransform(
+    [unwrapTransformer],
+    `
+"use strict";
+(function (global_scope) {
+    function promise_test() {}
+    expose(promise_test, "promise_test");
+})(self);
+`,
+    `
+"use strict";
+var global_scope = self;
+function promise_test() { }
+expose(promise_test, "promise_test");
+`
+  )
+  checkTransform(
+    [unwrapTransformer],
+    `
+(function () {
+    var x = 1;
+}).call(this);
+`,
+    `
+var x = 1;
+`
+  )
+  // (Each of its top-level calls.)
+  checkTransform(
+    [unwrapTransformer],
+    `
+(function (global) {
+    var x = 1;
+})(this);
+var DESCRIPTION;
+(() => {
+    var y = 2;
+})();
+f(function () {});
+`,
+    `
+var global = this;
+var x = 1;
+var DESCRIPTION;
+var y = 2;
+f(function () { });
 `
   )
 })

@@ -209,6 +209,82 @@ test('a project’s scipModuleFiles are modules', () => {
   }
 })
 
+// (Classic scripts' globals they assign to their global's properties, and a
+// harness's whose functions are in a function it calls at once.)
+test('classic scripts’ assigned globals and scipUnwrapFiles', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scip-unwrap-files-'))
+  try {
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      '{"name": "unwrap", "version": "1.0.0"}'
+    )
+    fs.writeFileSync(
+      path.join(dir, 'harness.js'),
+      '(function (global_scope) {\n' +
+        '    function promise_test() {}\n' +
+        '    expose(promise_test, "promise_test");\n' +
+        '})(self);\n'
+    )
+    fs.writeFileSync(
+      path.join(dir, 'shell.js'),
+      'globalThis.assertDeepEq = function () {};\n'
+    )
+    fs.writeFileSync(
+      path.join(dir, 'test.js'),
+      'promise_test();\nassertDeepEq();\n'
+    )
+    const project = path.join(dir, 'tsconfig.json')
+    fs.writeFileSync(
+      project,
+      JSON.stringify({
+        compilerOptions: { allowJs: true, checkJs: false, noEmit: true },
+        files: ['harness.js', 'shell.js', 'test.js'],
+        scipUnwrapFiles: ['harness.js'],
+      })
+    )
+    const output = path.join(dir, 'project.scip')
+    indexCommand([project], {
+      cwd: dir,
+      inferTsconfig: false,
+      output,
+      yarnWorkspaces: false,
+      yarnBerryWorkspaces: false,
+      pnpmWorkspaces: false,
+      progressBar: false,
+      indexedProjects: new Set(),
+      globalCaches: true,
+      stableTypeOrdering: true,
+      classicScripts: true,
+    })
+    const documents = scip.scip.Index.deserializeBinary(
+      fs.readFileSync(output)
+    ).documents
+    const document = documents.find(d => d.relative_path === 'test.js')
+    const symbols = new Set(document?.occurrences.map(o => o.symbol))
+    assert.ok(
+      symbols.has(
+        'scip-typescript npm unwrap 1.0.0 `harness.js`/promise_test().'
+      ),
+      [...symbols].join(', ')
+    )
+    assert.ok(
+      symbols.has('scip-typescript npm unwrap 1.0.0 `shell.js`/assertDeepEq.'),
+      [...symbols].join(', ')
+    )
+    // (Their definitions where they were.)
+    const harness = documents.find(d => d.relative_path === 'harness.js')
+    const definition = harness?.occurrences.find(
+      o =>
+        o.symbol ===
+          'scip-typescript npm unwrap 1.0.0 `harness.js`/promise_test().' &&
+        o.symbol_roles === 1
+    )
+    assert.equal(definition?.range, [1, 13, 25])
+  } finally {
+    fs.rmSync(dir, { recursive: true })
+  }
+})
+
 test('only-files of none of the projects’ files is an empty index', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scip-only-files-'))
   const exitCode = process.exitCode
