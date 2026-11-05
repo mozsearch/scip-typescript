@@ -19,6 +19,8 @@ export interface MultiProjectOptions {
   cwd: string
   output: string
   indexedProjects: Set<string>
+  /** Whether to check with `stableTypeOrdering` (see `--stable-type-ordering`). */
+  stableTypeOrdering?: boolean
 }
 
 /** Configuration options to index a single TypeScript project. */
@@ -68,6 +70,11 @@ export function mainCommand(
     .option(
       '--no-global-caches',
       'whether to disable global caches between TypeScript projects'
+    )
+    .option(
+      '--stable-type-ordering',
+      "check with TypeScript's stableTypeOrdering, so that the types in documentation (ex: a union's) are in the same order whichever files are checked first (ex: with --only-files)",
+      false
     )
     .option(
       '--max-file-byte-size <value>',

@@ -85,8 +85,13 @@ export class ProjectIndexer {
     public readonly options: ProjectOptions,
     cache: GlobalCache
   ) {
-    const host = createCompilerHost(cache, config.options, options)
-    this.program = ts.createProgram(config.fileNames, config.options, host)
+    // (A union's types, ex, are otherwise in the order the checker made them,
+    // which depends on which files were checked first.)
+    const compilerOptions: ts.CompilerOptions = options.stableTypeOrdering
+      ? { ...config.options, stableTypeOrdering: true }
+      : config.options
+    const host = createCompilerHost(cache, compilerOptions, options)
+    this.program = ts.createProgram(config.fileNames, compilerOptions, host)
     this.checker = this.program.getTypeChecker()
     this.packages = new Packages(options.projectRoot)
   }
