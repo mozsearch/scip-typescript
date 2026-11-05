@@ -65,7 +65,7 @@ export function infersInterface(): void {
     property: [{ value: { property: 42, property2: '42' } }],
 //  ^^^^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/GenericInterface#property.
 //               ^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Option#value.
-//                        ^^^^^^^^ definition syntax 1.0.0 src/`object-literals-call-signatures.ts`/property0:
+//                        ^^^^^^^^ definition syntax 1.0.0 src/`object-literals-call-signatures.ts`/property4:
 //                                      ^^^^^^^^^ definition syntax 1.0.0 src/`object-literals-call-signatures.ts`/property20:
   })
 }

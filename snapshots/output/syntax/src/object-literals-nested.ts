@@ -50,9 +50,9 @@ export function handleNestedTypeVariables(): Option<Person> {
     value: {
 //  ^^^^^ reference syntax 1.0.0 src/`reusable-types.ts`/Option#value.
       name: 'John',
-//    ^^^^ definition syntax 1.0.0 src/`object-literals-nested.ts`/name0:
+//    ^^^^ definition syntax 1.0.0 src/`object-literals-nested.ts`/name2:
       address: {
-//    ^^^^^^^ definition syntax 1.0.0 src/`object-literals-nested.ts`/address0:
+//    ^^^^^^^ definition syntax 1.0.0 src/`object-literals-nested.ts`/address1:
         street: 'Oxford Street',
 //      ^^^^^^ definition syntax 1.0.0 src/`object-literals-nested.ts`/street1:
         people: [

@@ -13,6 +13,7 @@ import {
   typeDescriptor,
   typeParameterDescriptor,
 } from './Descriptor'
+import { NodeOrdinals, propertyName } from './NodeOrdinals'
 import { Packages } from './Packages'
 import { formatByteSizeAsHumanReadable } from './parseHumanByteSizeIntoNumber'
 import { Range } from './Range'
@@ -23,7 +24,6 @@ import { isObjectDefinePropertyCall } from './utils'
 
 export class FileIndexer {
   private localCounter = new Counter()
-  private propertyCounters: Map<string, Counter> = new Map()
   private localSymbolTable: Map<ts.Node, ScipSymbol> = new Map()
   private workingDirectoryRegExp: RegExp
   constructor(
@@ -33,7 +33,8 @@ export class FileIndexer {
     public readonly globalSymbolTable: Map<ts.Node, ScipSymbol>,
     public readonly globalConstructorTable: Map<ts.ClassDeclaration, boolean>,
     public readonly packages: Packages,
-    public readonly sourceFile: ts.SourceFile
+    public readonly sourceFile: ts.SourceFile,
+    public readonly ordinals: NodeOrdinals
   ) {
     this.workingDirectoryRegExp = new RegExp(options.cwd, 'g')
   }
@@ -538,17 +539,13 @@ export class FileIndexer {
       ts.isPropertyAssignment(node) ||
       ts.isShorthandPropertyAssignment(node)
     ) {
-      const name = node.name.getText()
-      let counter = this.propertyCounters.get(name)
-      if (!counter) {
-        counter = new Counter()
-        this.propertyCounters.set(name, counter)
-      }
+      // (Numbered among its file's property assignments of the same name;
+      // see NodeOrdinals.)
       return this.cached(
         node,
         ScipSymbol.global(
           this.scipSymbol(node.getSourceFile()),
-          metaDescriptor(`${node.name.getText()}${counter.next()}`)
+          metaDescriptor(`${propertyName(node)}${this.ordinals.of(node)}`)
         )
       )
     }
@@ -680,7 +677,8 @@ export class FileIndexer {
       return metaDescriptor(node.typeName.getText())
     }
     if (ts.isTypeLiteralNode(node)) {
-      return metaDescriptor('typeLiteral' + this.localCounter.next().toString())
+      // (Numbered among its file's type literals; see NodeOrdinals.)
+      return metaDescriptor('typeLiteral' + this.ordinals.of(node).toString())
     }
     if (ts.isIdentifier(node) || ts.isStringLiteralLike(node)) {
       const text = node.text

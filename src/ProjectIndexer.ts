@@ -5,6 +5,7 @@ import * as ts from 'typescript'
 
 import { GlobalCache, ProjectOptions } from './CommandLineOptions'
 import { FileIndexer } from './FileIndexer'
+import { NodeOrdinals } from './NodeOrdinals'
 import { Packages } from './Packages'
 import * as scip from './scip'
 import { ScipSymbol } from './ScipSymbol'
@@ -77,6 +78,7 @@ export class ProjectIndexer {
   private checker: ts.TypeChecker
   private symbolCache: Map<ts.Node, ScipSymbol> = new Map()
   private hasConstructor: Map<ts.ClassDeclaration, boolean> = new Map()
+  private ordinals = new NodeOrdinals()
   private packages: Packages
   constructor(
     public readonly config: ts.ParsedCommandLine,
@@ -145,7 +147,8 @@ export class ProjectIndexer {
         this.symbolCache,
         this.hasConstructor,
         this.packages,
-        sourceFile
+        sourceFile,
+        this.ordinals
       )
       try {
         visitor.index()
