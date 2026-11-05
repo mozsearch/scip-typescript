@@ -19,6 +19,13 @@ export interface MultiProjectOptions {
   cwd: string
   output: string
   indexedProjects: Set<string>
+  /**
+   * A file listing the only files to index, if set: their paths, relative to
+   * `cwd`, one per line (see `--only-files`).
+   */
+  onlyFiles?: string
+  /** The absolute paths of `onlyFiles`' files, once it's read. */
+  onlyFileSet?: Set<string>
   /** Whether to check with `stableTypeOrdering` (see `--stable-type-ordering`). */
   stableTypeOrdering?: boolean
 }
@@ -70,6 +77,10 @@ export function mainCommand(
     .option(
       '--no-global-caches',
       'whether to disable global caches between TypeScript projects'
+    )
+    .option(
+      '--only-files <path>',
+      "index only the files listed in this file (their paths relative to --cwd, one per line), as a full index would, loading only the projects that include them; an index of none of them is empty, which isn't an error"
     )
     .option(
       '--stable-type-ordering',

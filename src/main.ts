@@ -41,6 +41,12 @@ export function indexCommand(
   }
   options.cwd = makeAbsolutePath(process.cwd(), options.cwd)
   options.output = makeAbsolutePath(options.cwd, options.output)
+  if (options.onlyFiles !== undefined && options.onlyFileSet === undefined) {
+    options.onlyFileSet = readOnlyFiles(
+      options.cwd,
+      makeAbsolutePath(options.cwd, options.onlyFiles)
+    )
+  }
   if (!options.indexedProjects) {
     options.indexedProjects = new Set()
   }
@@ -88,15 +94,34 @@ export function indexCommand(
     fs.close(output)
     if (documentCount > 0) {
       console.log(`done ${options.output}`)
-    } else {
+    } else if (options.onlyFileSet === undefined) {
       process.exitCode = 1
       fs.rmSync(options.output)
       const prettyProjects = JSON.stringify(projects)
       console.log(
         `error: no files got indexed. To fix this problem, make sure that the TypeScript projects ${prettyProjects} contain input files or reference other projects.`
       )
+    } else {
+      // (With --only-files, the files may be none of the projects'.)
+      console.log(`done ${options.output} (none of --only-files got indexed)`)
     }
   }
+}
+
+/**
+ * The absolute paths of the files listed in `listFile` (relative to `cwd`,
+ * one per line), as TypeScript names them (with forward slashes), for
+ * `--only-files`.
+ */
+function readOnlyFiles(cwd: string, listFile: string): Set<string> {
+  const files = new Set<string>()
+  for (const line of fs.readFileSync(listFile, 'utf-8').split(/\r?\n/)) {
+    const file = line.trim()
+    if (file !== '') {
+      files.add(path.resolve(cwd, file).replaceAll('\\', '/'))
+    }
+  }
+  return files
 }
 
 function makeAbsolutePath(cwd: string, relativeOrAbsolutePath: string): string {
@@ -150,6 +175,15 @@ function indexSingleProject(options: ProjectOptions, cache: GlobalCache): void {
   }
 
   if (config.fileNames.length > 0) {
+    // (With --only-files, a project including none of them isn't loaded.)
+    const onlyFiles = options.onlyFileSet
+    if (
+      onlyFiles !== undefined &&
+      !config.fileNames.some(fileName => onlyFiles.has(fileName))
+    ) {
+      console.log(`- ${options.projectDisplayName} (none of --only-files)`)
+      return
+    }
     new ProjectIndexer(config, options, cache).index()
   }
 }

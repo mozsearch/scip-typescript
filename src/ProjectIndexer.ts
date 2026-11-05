@@ -106,6 +106,12 @@ export class ProjectIndexer {
       if (!includes) {
         continue
       }
+      if (
+        this.options.onlyFileSet !== undefined &&
+        !this.options.onlyFileSet.has(sourceFile.fileName)
+      ) {
+        continue
+      }
       filesToIndex.push(sourceFile)
     }
 
