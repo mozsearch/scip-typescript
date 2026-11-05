@@ -105,6 +105,47 @@ test('only-files external symbols are their documents’ symbol information', ()
   }
 })
 
+// (A generated project's own only files: its tsconfig.json's
+// `scipOnlyFiles`.)
+test('a project’s scipOnlyFiles are its only documents', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scip-only-files-'))
+  try {
+    const project = path.join(dir, 'tsconfig.json')
+    fs.writeFileSync(
+      project,
+      JSON.stringify({
+        compilerOptions: { target: 'ES2020', strict: true },
+        files: ['a.ts', 'b.ts', 'c.ts'].map(f =>
+          path.join(inputRoot, 'src', f)
+        ),
+        scipOnlyFiles: [path.join(inputRoot, 'src', 'c.ts')],
+      })
+    )
+    const output = path.join(dir, 'project.scip')
+    indexCommand([project], {
+      cwd: inputRoot,
+      inferTsconfig: false,
+      output,
+      yarnWorkspaces: false,
+      yarnBerryWorkspaces: false,
+      pnpmWorkspaces: false,
+      progressBar: false,
+      indexedProjects: new Set(),
+      globalCaches: true,
+      stableTypeOrdering: true,
+    })
+    const documents = scip.scip.Index.deserializeBinary(
+      fs.readFileSync(output)
+    ).documents
+    assert.equal(
+      documents.map(document => document.relative_path),
+      ['src/c.ts']
+    )
+  } finally {
+    fs.rmSync(dir, { recursive: true })
+  }
+})
+
 test('only-files of none of the projects’ files is an empty index', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scip-only-files-'))
   const exitCode = process.exitCode

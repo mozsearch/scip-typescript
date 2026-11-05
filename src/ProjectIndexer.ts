@@ -80,6 +80,13 @@ export class ProjectIndexer {
   private hasConstructor: Map<ts.ClassDeclaration, boolean> = new Map()
   private ordinals = new NodeOrdinals()
   private packages: Packages
+  /**
+   * The project's own only files, if its configuration lists them (its
+   * `scipOnlyFiles`: paths relative to it, or absolute), as --only-files
+   * does for every project (ex: a generated project of a JS environment,
+   * whose scripts other projects of the same environment's kind document).
+   */
+  private projectOnlyFiles: Set<string> | undefined
   constructor(
     public readonly config: ts.ParsedCommandLine,
     public readonly options: ProjectOptions,
@@ -94,6 +101,19 @@ export class ProjectIndexer {
     this.program = ts.createProgram(config.fileNames, compilerOptions, host)
     this.checker = this.program.getTypeChecker()
     this.packages = new Packages(options.projectRoot)
+    const raw = config.raw as { scipOnlyFiles?: unknown } | undefined
+    if (Array.isArray(raw?.scipOnlyFiles)) {
+      const configFile = options.projectRoot.endsWith('.json')
+        ? path.resolve(options.projectRoot)
+        : path.resolve(options.projectRoot, 'tsconfig.json')
+      this.projectOnlyFiles = new Set(
+        raw.scipOnlyFiles
+          .filter((file): file is string => typeof file === 'string')
+          .map(file =>
+            path.resolve(path.dirname(configFile), file).replaceAll('\\', '/')
+          )
+      )
+    }
   }
   public index(): void {
     const startTimestamp = Date.now()
@@ -112,9 +132,19 @@ export class ProjectIndexer {
       ) {
         continue
       }
+      if (
+        this.projectOnlyFiles !== undefined &&
+        !this.projectOnlyFiles.has(sourceFile.fileName)
+      ) {
+        continue
+      }
       filesToIndex.push(sourceFile)
     }
 
+    if (filesToIndex.length === 0 && this.projectOnlyFiles !== undefined) {
+      // (None of its own only files are its files, ex: they're too big.)
+      return
+    }
     if (filesToIndex.length === 0) {
       throw new Error(
         `no indexable files in project '${this.options.projectDisplayName}'`
