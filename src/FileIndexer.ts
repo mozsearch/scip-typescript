@@ -572,6 +572,22 @@ export class FileIndexer {
       return this.newLocalSymbol(node)
     }
 
+    // A `this.ok = ...` assignment's declaration in a function or class (ex:
+    // a JS constructor's property's, which a use resolves to) is its target's,
+    // as its value's is above, rather than a local of the document using it.
+    // (Not at a file's top level, whose `this` has no owner but the
+    // assignment, whose symbol would then be its target's, endlessly.)
+    if (
+      ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.FirstAssignment &&
+      (ts.isPropertyAccessExpression(node.left) ||
+        ts.isElementAccessExpression(node.left)) &&
+      node.left.expression.kind === ts.SyntaxKind.ThisKeyword &&
+      isInFunctionOrClass(node)
+    ) {
+      return this.scipSymbol(node.left)
+    }
+
     const tsSymbol = this.getTSSymbolAtLocation(node)
     if (
       tsSymbol?.valueDeclaration &&
@@ -1036,6 +1052,19 @@ function compareArrays<T>(a: T[], b: T[]): number {
     }
   }
   return a.length - b.length
+}
+
+/** Whether a node is in a function or a class (not just at its file's top level). */
+function isInFunctionOrClass(node: ts.Node): boolean {
+  for (let parent = node.parent; parent; parent = parent.parent) {
+    if (ts.isFunctionLike(parent) || ts.isClassLike(parent)) {
+      return true
+    }
+    if (ts.isSourceFile(parent)) {
+      return false
+    }
+  }
+  return false
 }
 
 /** A module's symbol information, as its document has it. */
