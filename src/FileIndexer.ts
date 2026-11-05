@@ -13,6 +13,7 @@ import {
   typeDescriptor,
   typeParameterDescriptor,
 } from './Descriptor'
+import { ExternalSymbols } from './ExternalSymbols'
 import { NodeOrdinals, propertyName } from './NodeOrdinals'
 import { Packages } from './Packages'
 import { formatByteSizeAsHumanReadable } from './parseHumanByteSizeIntoNumber'
@@ -34,7 +35,8 @@ export class FileIndexer {
     public readonly globalConstructorTable: Map<ts.ClassDeclaration, boolean>,
     public readonly packages: Packages,
     public readonly sourceFile: ts.SourceFile,
-    public readonly ordinals: NodeOrdinals
+    public readonly ordinals: NodeOrdinals,
+    public readonly externalSymbols?: ExternalSymbols
   ) {
     this.workingDirectoryRegExp = new RegExp(options.cwd, 'g')
   }
@@ -85,17 +87,7 @@ export class FileIndexer {
         symbol_roles: scip.scip.SymbolRole.Definition,
       })
     )
-    const moduleName =
-      this.sourceFile.moduleName || path.basename(this.sourceFile.fileName)
-    this.document.symbols.push(
-      new scip.scip.SymbolInformation({
-        symbol: symbol.value,
-        signature_documentation: new scip.scip.Signature({
-          language: 'ts',
-          text: `module ${moduleName}`,
-        }),
-      })
-    )
+    this.document.symbols.push(moduleSymbolInformation(this.sourceFile, symbol))
   }
   private visit(node: ts.Node): void {
     if (
@@ -262,6 +254,9 @@ export class FileIndexer {
           diagnostics: FileIndexer.diagnosticsFor(sym, isDefinitionNode),
         })
       )
+      if (!isDefinitionNode) {
+        this.noteExternalSymbol(declaration, scipSymbol)
+      }
       if (isDefinitionNode) {
         this.addSymbolInformation(node, sym, declaration, scipSymbol)
         this.handleShorthandPropertyDefinition(declaration, range)
@@ -303,6 +298,7 @@ export class FileIndexer {
           symbol: scipSymbol.value,
         })
       )
+      this.noteExternalSymbol(declaration, scipSymbol)
     }
   }
 
@@ -340,6 +336,7 @@ export class FileIndexer {
           symbol: scipSymbol.value,
         })
       )
+      this.noteExternalSymbol(symbol, scipSymbol)
     }
   }
 
@@ -352,6 +349,67 @@ export class FileIndexer {
     declaration: ts.Node,
     symbol: ScipSymbol
   ): void {
+    this.document.symbols.push(
+      this.symbolInformation(node, sym, declaration, symbol)
+    )
+  }
+
+  /**
+   * With --only-files, the symbol information of a symbol a reference refers
+   * to which another of the projects' files defines (see ExternalSymbols), as
+   * its document would have it: at its declaration's name.
+   */
+  private noteExternalSymbol(declaration: ts.Node, symbol: ScipSymbol): void {
+    if (
+      symbol.isLocal() ||
+      !this.externalSymbols?.wants(declaration, symbol.value)
+    ) {
+      return
+    }
+    if (ts.isSourceFile(declaration)) {
+      this.externalSymbols?.add(moduleSymbolInformation(declaration, symbol))
+      return
+    }
+    const node = ts.getNameOfDeclaration(declaration as ts.Declaration)
+    if (!node || node.pos < 0) {
+      return
+    }
+    const sym = this.getTSSymbolAtLocation(node)
+    if (!sym) {
+      return
+    }
+    // (Only if its document has it: at a definition which isn't a property
+    // assignment's, for the definition's first declaration; see
+    // visitSymbolOccurrence.)
+    const propertyAssignmentDeclarations =
+      this.getDeclarationsForPropertyAssignment(node)
+    if (
+      (propertyAssignmentDeclarations &&
+        propertyAssignmentDeclarations.length !== 0) ||
+      !isDefinition(node) ||
+      getDeclarations(node, sym)[0] !== declaration
+    ) {
+      return
+    }
+    try {
+      this.externalSymbols?.add(
+        this.symbolInformation(node, sym, declaration, symbol)
+      )
+    } catch (error) {
+      // (Its document's indexing doesn't need it.)
+      console.error(
+        `unexpected error describing '${symbol.value}' for '${this.sourceFile.fileName}'`,
+        error
+      )
+    }
+  }
+
+  private symbolInformation(
+    node: ts.Node,
+    sym: ts.Symbol,
+    declaration: ts.Node,
+    symbol: ScipSymbol
+  ): scip.scip.SymbolInformation {
     const signature = this.hideWorkingDirectory(
       this.signatureForDocumentation(node, sym)
     )
@@ -360,17 +418,15 @@ export class FileIndexer {
     const documentation =
       docstring.length > 0 ? [ts.displayPartsToString(docstring)] : undefined
 
-    this.document.symbols.push(
-      new scip.scip.SymbolInformation({
-        symbol: symbol.value,
-        documentation,
-        signature_documentation: new scip.scip.Signature({
-          language: 'ts',
-          text: signature,
-        }),
-        relationships: this.relationships(declaration, symbol),
-      })
-    )
+    return new scip.scip.SymbolInformation({
+      symbol: symbol.value,
+      documentation,
+      signature_documentation: new scip.scip.Signature({
+        language: 'ts',
+        text: signature,
+      }),
+      relationships: this.relationships(declaration, symbol),
+    })
   }
 
   private pushOccurrence(occurrence: scip.scip.Occurrence): void {
@@ -980,6 +1036,21 @@ function compareArrays<T>(a: T[], b: T[]): number {
     }
   }
   return a.length - b.length
+}
+
+/** A module's symbol information, as its document has it. */
+function moduleSymbolInformation(
+  sourceFile: ts.SourceFile,
+  symbol: ScipSymbol
+): scip.scip.SymbolInformation {
+  const moduleName = sourceFile.moduleName || path.basename(sourceFile.fileName)
+  return new scip.scip.SymbolInformation({
+    symbol: symbol.value,
+    signature_documentation: new scip.scip.Signature({
+      language: 'ts',
+      text: `module ${moduleName}`,
+    }),
+  })
 }
 
 function getDeclarations(node: ts.Node, sym: ts.Symbol): ts.Node[] {

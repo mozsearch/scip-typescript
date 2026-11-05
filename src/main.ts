@@ -15,6 +15,7 @@ import {
   MultiProjectOptions,
   ProjectOptions,
 } from './CommandLineOptions'
+import { ExternalSymbols } from './ExternalSymbols'
 import { inferTsconfig } from './inferTsconfig'
 import { ProjectIndexer } from './ProjectIndexer'
 import * as scip from './scip'
@@ -60,6 +61,15 @@ export function indexCommand(
   const cache: GlobalCache = {
     sources: new Map(),
     parsedCommandLines: new Map(),
+    projectConfigs: new Map(),
+  }
+  // (With --only-files, the symbols its documents use that the other files
+  // of the projects define are the index's external symbols.)
+  if (options.onlyFileSet !== undefined) {
+    options.externalSymbols = new ExternalSymbols(
+      projectsFiles(projects, options, cache),
+      options.onlyFileSet
+    )
   }
   try {
     writeIndex(
@@ -88,6 +98,13 @@ export function indexCommand(
           writeIndex,
         },
         cache
+      )
+    }
+    if (options.externalSymbols && options.externalSymbols.symbols.length > 0) {
+      writeIndex(
+        new scip.scip.Index({
+          external_symbols: options.externalSymbols.symbols,
+        })
       )
     }
   } finally {
@@ -131,15 +148,23 @@ function makeAbsolutePath(cwd: string, relativeOrAbsolutePath: string): string {
   return path.resolve(cwd, relativeOrAbsolutePath)
 }
 
-function indexSingleProject(options: ProjectOptions, cache: GlobalCache): void {
-  if (options.indexedProjects.has(options.projectRoot)) {
-    return
+/**
+ * The project's configuration, or undefined if it has no tsconfig.json (which
+ * it says, unless `quietly`), as loaded once (`cache.projectConfigs`).
+ */
+function projectConfig(
+  options: MultiProjectOptions,
+  projectRoot: string,
+  projectDisplayName: string,
+  cache: GlobalCache,
+  quietly = false
+): ts.ParsedCommandLine | undefined {
+  if (cache.projectConfigs.has(projectRoot)) {
+    return cache.projectConfigs.get(projectRoot)
   }
-
-  options.indexedProjects.add(options.projectRoot)
-  let config = ts.parseCommandLine(
-    ['-p', options.projectRoot],
-    (relativePath: string) => path.resolve(options.projectRoot, relativePath)
+  let config: ts.ParsedCommandLine | undefined = ts.parseCommandLine(
+    ['-p', projectRoot],
+    (relativePath: string) => path.resolve(projectRoot, relativePath)
   )
   let tsconfigFileName: string | undefined
   if (config.options.project) {
@@ -153,14 +178,67 @@ function indexSingleProject(options: ProjectOptions, cache: GlobalCache): void {
       if (options.inferTsconfig) {
         fs.writeFileSync(tsconfigFileName, inferTsconfig(projectPath))
       } else {
-        console.error(`- ${options.projectDisplayName} (missing tsconfig.json)`)
-        return
+        if (!quietly) {
+          console.error(`- ${projectDisplayName} (missing tsconfig.json)`)
+        }
+        config = undefined
       }
     }
-    const loadedConfig = loadConfigFile(tsconfigFileName)
-    if (loadedConfig !== undefined) {
-      config = loadedConfig
+    if (config !== undefined) {
+      const loadedConfig = loadConfigFile(tsconfigFileName)
+      if (loadedConfig !== undefined) {
+        config = loadedConfig
+      }
     }
+  }
+  cache.projectConfigs.set(projectRoot, config)
+  return config
+}
+
+/**
+ * The files of the projects and the projects they reference, which a full
+ * index has documents of (for `--only-files`' external symbols).
+ */
+function projectsFiles(
+  projects: string[],
+  options: MultiProjectOptions,
+  cache: GlobalCache
+): Set<string> {
+  const files = new Set<string>()
+  const seen = new Set<string>()
+  const visit = (projectRoot: string): void => {
+    if (seen.has(projectRoot)) {
+      return
+    }
+    seen.add(projectRoot)
+    const config = projectConfig(options, projectRoot, projectRoot, cache, true)
+    for (const projectReference of config?.projectReferences || []) {
+      visit(projectReference.path)
+    }
+    for (const fileName of config?.fileNames || []) {
+      files.add(fileName)
+    }
+  }
+  for (const projectRoot of projects) {
+    visit(projectRoot)
+  }
+  return files
+}
+
+function indexSingleProject(options: ProjectOptions, cache: GlobalCache): void {
+  if (options.indexedProjects.has(options.projectRoot)) {
+    return
+  }
+
+  options.indexedProjects.add(options.projectRoot)
+  const config = projectConfig(
+    options,
+    options.projectRoot,
+    options.projectDisplayName,
+    cache
+  )
+  if (config === undefined) {
+    return
   }
 
   for (const projectReference of config.projectReferences || []) {

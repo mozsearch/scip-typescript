@@ -159,7 +159,8 @@ export class ProjectIndexer {
         this.hasConstructor,
         this.packages,
         sourceFile,
-        this.ordinals
+        this.ordinals,
+        this.options.externalSymbols
       )
       try {
         visitor.index()

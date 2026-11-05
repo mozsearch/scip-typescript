@@ -13,7 +13,7 @@ import * as scip from './scip'
 // other, not with snapshots.)
 const inputRoot = path.join(process.cwd(), 'snapshots', 'only-files')
 
-function index(output: string, onlyFiles?: string[]): scip.scip.Document[] {
+function index(output: string, onlyFiles?: string[]): scip.scip.Index {
   const options: MultiProjectOptions = {
     cwd: inputRoot,
     inferTsconfig: false,
@@ -31,7 +31,11 @@ function index(output: string, onlyFiles?: string[]): scip.scip.Document[] {
     fs.writeFileSync(options.onlyFiles, onlyFiles.join('\n') + '\n')
   }
   indexCommand([], options)
-  return scip.scip.Index.deserializeBinary(fs.readFileSync(output)).documents
+  return scip.scip.Index.deserializeBinary(fs.readFileSync(output))
+}
+
+function serialized(message: { serializeBinary(): Uint8Array }): string {
+  return Buffer.from(message.serializeBinary()).toString('base64')
 }
 
 // (c.ts uses a.ts's type literal and object literal's properties, which a
@@ -42,8 +46,8 @@ const onlyFiles = ['src/c.ts']
 test('only-files documents are the full index’s', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scip-only-files-'))
   try {
-    const full = index(path.join(dir, 'full.scip'))
-    const only = index(path.join(dir, 'only.scip'), onlyFiles)
+    const full = index(path.join(dir, 'full.scip')).documents
+    const only = index(path.join(dir, 'only.scip'), onlyFiles).documents
     assert.equal(
       only.map(document => document.relative_path).toSorted(),
       onlyFiles.toSorted()
@@ -54,9 +58,46 @@ test('only-files documents are the full index’s', () => {
       )
       assert.ok(fullDocument, document.relative_path)
       assert.equal(
-        Buffer.from(document.serializeBinary()).toString('base64'),
-        Buffer.from(fullDocument.serializeBinary()).toString('base64'),
+        serialized(document),
+        serialized(fullDocument),
         document.relative_path
+      )
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true })
+  }
+})
+
+// (c.ts uses a.ts's symbols, whose symbol information a.ts's document has.)
+test('only-files external symbols are their documents’ symbol information', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scip-only-files-'))
+  try {
+    const full = index(path.join(dir, 'full.scip'))
+    const only = index(path.join(dir, 'only.scip'), onlyFiles)
+    const fullSymbols = new Map(
+      full.documents.flatMap(document =>
+        document.symbols.map(information => [information.symbol, information])
+      )
+    )
+    const external = new Set(
+      only.external_symbols.map(information => information.symbol)
+    )
+    for (const symbol of [
+      'scip-typescript npm only-files 1.0.0 src/`a.ts`/',
+      'scip-typescript npm only-files 1.0.0 src/`a.ts`/Options#',
+      'scip-typescript npm only-files 1.0.0 src/`a.ts`/defaults.',
+      'scip-typescript npm only-files 1.0.0 src/`a.ts`/Options#typeLiteral0:level.',
+      'scip-typescript npm only-files 1.0.0 src/`a.ts`/mode0:',
+    ]) {
+      assert.ok(external.has(symbol), symbol)
+    }
+    for (const information of only.external_symbols) {
+      const fullInformation = fullSymbols.get(information.symbol)
+      assert.ok(fullInformation, information.symbol)
+      assert.equal(
+        serialized(information),
+        serialized(fullInformation),
+        information.symbol
       )
     }
   } finally {
@@ -69,7 +110,7 @@ test('only-files of none of the projects’ files is an empty index', () => {
   const exitCode = process.exitCode
   try {
     const only = index(path.join(dir, 'only.scip'), ['README.md'])
-    assert.is(only.length, 0)
+    assert.is(only.documents.length, 0)
     assert.is(process.exitCode, exitCode)
   } finally {
     process.exitCode = exitCode

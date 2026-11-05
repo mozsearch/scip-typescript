@@ -3,6 +3,7 @@ import ts from 'typescript'
 
 import packageJson from '../package.json'
 
+import { ExternalSymbols } from './ExternalSymbols'
 import { parseHumanByteSizeIntoNumber } from './parseHumanByteSizeIntoNumber'
 import * as scip from './scip'
 
@@ -26,6 +27,8 @@ export interface MultiProjectOptions {
   onlyFiles?: string
   /** The absolute paths of `onlyFiles`' files, once it's read. */
   onlyFileSet?: Set<string>
+  /** With `onlyFiles`, the index's external symbols (see ExternalSymbols). */
+  externalSymbols?: ExternalSymbols
   /** Whether to check with `stableTypeOrdering` (see `--stable-type-ordering`). */
   stableTypeOrdering?: boolean
 }
@@ -44,6 +47,8 @@ export interface GlobalCache {
     [ts.SourceFile | undefined, ts.ScriptTarget | ts.CreateSourceFileOptions]
   >
   parsedCommandLines: Map<string, ts.ParsedCommandLine>
+  /** The projects' configurations, by their roots (undefined if missing). */
+  projectConfigs: Map<string, ts.ParsedCommandLine | undefined>
 }
 
 export function mainCommand(
