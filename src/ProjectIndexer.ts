@@ -66,7 +66,11 @@ function createCompilerHost(
       return undefined
     }
 
-    const transformed = transformSourceFile(original, compilerOptions)
+    const transformed = transformSourceFile(
+      original,
+      compilerOptions,
+      projectOptions.classicScripts
+    )
     cache.sources.set(fileName, [transformed, languageVersion])
     return transformed
   }

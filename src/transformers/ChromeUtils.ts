@@ -11,6 +11,21 @@
 // ChromeUtils.importESModule(path)
 // into
 // require(path)
+//
+// But a classic script calling `require()` is a CommonJS module to
+// TypeScript, whose top-level declarations aren't globals, though they are,
+// ex: a test's head file's helpers, which the test uses. So with
+// --classic-scripts (`chromeUtilsTransformerFor(true)`), in a classic script,
+// ChromeUtils.importESModule(path) stays (Gecko's types map its paths to
+// their modules), and
+//
+// ChromeUtils.defineESModuleGetters(obj, { imported: path })
+// into
+// obj["imported"] = ChromeUtils.importESModule(path)["imported"]
+//
+// or, for the global (`this` or `globalThis`, at its top level), into a global
+//
+// var imported = ChromeUtils.importESModule(path)["imported"]
 
 import ts from 'typescript'
 
@@ -23,7 +38,7 @@ import {
 } from './utils'
 
 type DefineESModuleGettersArguments = [
-  ts.EntityNameExpression,
+  ts.EntityNameExpression | ts.ThisExpression,
   ts.ObjectLiteralExpression,
 ]
 type DefineESModuleGettersCall = ts.CallExpression & {
@@ -41,7 +56,8 @@ function isDefineESModuleGettersCall(
     ts.idText(node.expression.name) === 'defineESModuleGetters' &&
     node.arguments.length >= 2 &&
     node.arguments.length <= 3 &&
-    isEntityNameExpression(node.arguments[0]) &&
+    (isEntityNameExpression(node.arguments[0]) ||
+      node.arguments[0].kind === ts.SyntaxKind.ThisKeyword) &&
     ts.isObjectLiteralExpression(node.arguments[1])
   )
 }
@@ -78,8 +94,16 @@ function isDefineLazyGetterCall(node: ts.Node): node is DefineLazyGetterCall {
   )
 }
 
-export const chromeUtilsTransformer: ts.TransformerFactory<ts.SourceFile> =
-  context => sourceFile => {
+export const chromeUtilsTransformer = chromeUtilsTransformerFor(false)
+
+/** The transformer, keeping classic scripts' globals or not (see the top). */
+export function chromeUtilsTransformerFor(
+  classicScripts: boolean
+): ts.TransformerFactory<ts.SourceFile> {
+  return context => sourceFile => {
+    // (Whether it's transformed as a module: by its own syntax, with
+    // --classic-scripts; see the top.)
+    const isModule = !classicScripts || ts.isExternalModule(sourceFile)
     // forEachDynamicImportOrRequireCall which is used by the Typescript compiler to collect the external modules the current file depends on doesn't traverse the AST but runs a RegExp over the source text, thus it doesn't pick up the synthetized require calls added here. We will append explicit toplevel imports for those.
     const importPaths: ts.Expression[] = []
 
@@ -94,8 +118,14 @@ export const chromeUtilsTransformer: ts.TransformerFactory<ts.SourceFile> =
         const objectAssignCall = node.expression
 
         const [target, { properties }] = objectAssignCall.arguments
+        // (A classic script's getters on its global are globals.)
+        const globalTarget =
+          !isModule &&
+          node.parent === sourceFile &&
+          (target.kind === ts.SyntaxKind.ThisKeyword ||
+            (ts.isIdentifier(target) && ts.idText(target) === 'globalThis'))
 
-        const assignments: ts.BinaryExpression[] = []
+        const statements: ts.Statement[] = []
         for (const property of properties) {
           if (!ts.isPropertyAssignment(property)) {
             console.warn(
@@ -104,19 +134,27 @@ export const chromeUtilsTransformer: ts.TransformerFactory<ts.SourceFile> =
             continue
           }
 
-          const [expression, path] = transformESModuleGetter(target, property)
-          assignments.push(expression)
-          importPaths.push(path)
+          if (globalTarget && ts.isIdentifier(property.name)) {
+            statements.push(globalESModuleGetter(property))
+            continue
+          }
+          const [expression, path] = transformESModuleGetter(
+            target,
+            property,
+            isModule
+          )
+          statements.push(ts.factory.createExpressionStatement(expression))
+          if (isModule) {
+            importPaths.push(path)
+          }
         }
 
         miscExpressionsToIndex.push(node.expression.expression)
 
-        return assignments.map(expression =>
-          ts.factory.createExpressionStatement(expression)
-        )
+        return statements
       }
 
-      if (isImportESModuleCall(node)) {
+      if (isImportESModuleCall(node) && isModule) {
         miscExpressionsToIndex.push(node.expression)
 
         const [path] = node.arguments
@@ -184,18 +222,53 @@ export const chromeUtilsTransformer: ts.TransformerFactory<ts.SourceFile> =
       transformed.libReferenceDirectives
     )
   }
+}
+
+/** `ChromeUtils.importESModule(path)`, for a classic script; see the top. */
+function createImportESModuleCall(path: ts.Expression): ts.CallExpression {
+  return ts.factory.createCallExpression(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier('ChromeUtils'),
+      ts.factory.createIdentifier('importESModule')
+    ),
+    undefined,
+    [path]
+  )
+}
+
+/**
+ * A classic script's getter on its global, as a global: `var imported =
+ * ChromeUtils.importESModule(path)["imported"]`, defined at the property's
+ * name.
+ */
+function globalESModuleGetter(property: ts.PropertyAssignment): ts.Statement {
+  const name = property.name as ts.Identifier
+  const value = createAccessExpression(
+    createImportESModuleCall(property.initializer),
+    name
+  )
+  return ts.factory.createVariableStatement(
+    undefined,
+    ts.factory.createVariableDeclarationList(
+      [ts.factory.createVariableDeclaration(name, undefined, undefined, value)],
+      ts.NodeFlags.None
+    )
+  )
+}
 
 function transformESModuleGetter(
-  target: ts.EntityNameExpression,
-  property: ts.PropertyAssignment
+  target: ts.EntityNameExpression | ts.ThisExpression,
+  property: ts.PropertyAssignment,
+  isModule: boolean
 ): [ts.BinaryExpression, ts.Expression] {
   const accessExpression = createAccessExpression(target, property.name)
-  const requireIdentifier = ts.factory.createIdentifier('require')
-  const importCall = ts.factory.createCallExpression(
-    requireIdentifier,
-    undefined,
-    [property.initializer]
-  )
+  const importCall = isModule
+    ? ts.factory.createCallExpression(
+        ts.factory.createIdentifier('require'),
+        undefined,
+        [property.initializer]
+      )
+    : createImportESModuleCall(property.initializer)
   const namedExportAccess = createAccessExpression(importCall, property.name)
   const assignment = createAssignment(accessExpression, namedExportAccess)
   return [assignment, property.initializer]

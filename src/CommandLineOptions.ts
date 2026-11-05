@@ -31,6 +31,8 @@ export interface MultiProjectOptions {
   externalSymbols?: ExternalSymbols
   /** Whether to check with `stableTypeOrdering` (see `--stable-type-ordering`). */
   stableTypeOrdering?: boolean
+  /** Whether classic scripts stay scripts (see `--classic-scripts`). */
+  classicScripts?: boolean
 }
 
 /** Configuration options to index a single TypeScript project. */
@@ -90,6 +92,11 @@ export function mainCommand(
     .option(
       '--stable-type-ordering',
       "check with TypeScript's stableTypeOrdering, so that the types in documentation (ex: a union's) are in the same order whichever files are checked first (ex: with --only-files)",
+      false
+    )
+    .option(
+      '--classic-scripts',
+      "keep classic scripts' ChromeUtils.importESModule() and defineESModuleGetters() calls from making them modules (as the require() calls they're otherwise transformed into would), so that their top-level declarations stay globals, and getters defined on their global are globals",
       false
     )
     .option(

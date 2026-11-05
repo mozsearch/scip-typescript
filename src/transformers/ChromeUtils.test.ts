@@ -1,10 +1,18 @@
 import { test } from 'uvu'
 
-import { chromeUtilsTransformer } from './ChromeUtils'
+import {
+  chromeUtilsTransformer,
+  chromeUtilsTransformerFor,
+} from './ChromeUtils'
 import { checkTransform as checkTransforms } from './testUtils'
 
 function checkChromeUtilsTransform(source: string, expected: string) {
   checkTransforms([chromeUtilsTransformer], source, expected)
+}
+
+// (With --classic-scripts.)
+function checkClassicScriptTransform(source: string, expected: string) {
+  checkTransforms([chromeUtilsTransformerFor(true)], source, expected)
 }
 
 test('importESModuleCall', () => {
@@ -39,6 +47,55 @@ obj["chmod"] = require('node:fs')["chmod"];
 obj["constants"] = require('node:crypto')["constants"];
 import _fakeImport0 = require('node:fs');
 import _fakeImport1 = require('node:crypto');
+ChromeUtils.defineESModuleGetters;
+`
+  )
+})
+
+// (With --classic-scripts, a classic script isn't made a module, but a
+// module is still transformed as one; see ChromeUtils.ts's top.)
+test('importESModuleCall in a classic script', () => {
+  checkClassicScriptTransform(
+    `
+const { chmod } = ChromeUtils.importESModule('node:fs');
+`,
+    `
+const { chmod } = ChromeUtils.importESModule('node:fs');
+`
+  )
+})
+
+test('importESModuleCall in a module, with classic scripts', () => {
+  checkClassicScriptTransform(
+    `
+export {};
+const { chmod } = ChromeUtils.importESModule('node:fs');
+`,
+    `
+export {};
+const { chmod } = require('node:fs');
+import _fakeImport0 = require('node:fs');
+ChromeUtils.importESModule;
+`
+  )
+})
+
+test('defineESModuleGetters in a classic script', () => {
+  checkClassicScriptTransform(
+    `
+const obj = {};
+ChromeUtils.defineESModuleGetters(obj, {
+    chmod: 'node:fs',
+});
+ChromeUtils.defineESModuleGetters(this, {
+    constants: 'node:crypto',
+});
+`,
+    `
+const obj = {};
+obj["chmod"] = ChromeUtils.importESModule('node:fs')["chmod"];
+var constants = ChromeUtils.importESModule('node:crypto')["constants"];
+ChromeUtils.defineESModuleGetters;
 ChromeUtils.defineESModuleGetters;
 `
   )

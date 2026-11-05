@@ -1,14 +1,19 @@
 import ts from 'typescript'
 
-import { chromeUtilsTransformer } from './ChromeUtils'
+import { chromeUtilsTransformerFor } from './ChromeUtils'
 import { definePropertiesTransformer } from './DefineProperties'
 import { objectAssignTransformer } from './ObjectAssign'
 
-const TRANSFORMERS = [
-  objectAssignTransformer,
-  definePropertiesTransformer,
-  chromeUtilsTransformer,
-]
+/** The transformers, keeping classic scripts' globals or not (see ChromeUtils.ts). */
+function transformers(
+  classicScripts: boolean
+): ts.TransformerFactory<ts.SourceFile>[] {
+  return [
+    objectAssignTransformer,
+    definePropertiesTransformer,
+    chromeUtilsTransformerFor(classicScripts),
+  ]
+}
 
 /// The transforms don't set Node.parent, don't propagate NodeFlags.JavaScriptFile and set NodeFlags.Synthesized which cause issues with some analyses.
 ///
@@ -33,10 +38,14 @@ function fixupNodeTree(node: ts.Node, parent?: ts.Node): void {
 
 export function transformSourceFile(
   source: ts.SourceFile,
-  compilerOptions: ts.CompilerOptions
+  compilerOptions: ts.CompilerOptions,
+  classicScripts = false
 ): ts.SourceFile {
-  const transformed = ts.transform(source, TRANSFORMERS, compilerOptions)
-    .transformed[0]
+  const transformed = ts.transform(
+    source,
+    transformers(classicScripts),
+    compilerOptions
+  ).transformed[0]
   fixupNodeTree(transformed)
   return transformed
 }
