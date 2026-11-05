@@ -146,6 +146,69 @@ test('a project’s scipOnlyFiles are its only documents', () => {
   }
 })
 
+// (Tests sharing a project with the scripts they're loaded after: forced
+// to be modules, their own declarations are each one's.)
+test('a project’s scipModuleFiles are modules', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scip-module-files-'))
+  try {
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      '{"name": "modules", "version": "1.0.0"}'
+    )
+    fs.writeFileSync(path.join(dir, 'shared.js'), 'function shared() {}\n')
+    for (const test of ['t1.js', 't2.js']) {
+      fs.writeFileSync(
+        path.join(dir, test),
+        'function own() {}\nown();\nshared();\n'
+      )
+    }
+    const project = path.join(dir, 'tsconfig.json')
+    fs.writeFileSync(
+      project,
+      JSON.stringify({
+        compilerOptions: { allowJs: true, checkJs: false, noEmit: true },
+        files: ['shared.js', 't1.js', 't2.js'],
+        scipModuleFiles: ['t1.js', 't2.js'],
+      })
+    )
+    const output = path.join(dir, 'project.scip')
+    indexCommand([project], {
+      cwd: dir,
+      inferTsconfig: false,
+      output,
+      yarnWorkspaces: false,
+      yarnBerryWorkspaces: false,
+      pnpmWorkspaces: false,
+      progressBar: false,
+      indexedProjects: new Set(),
+      globalCaches: true,
+      stableTypeOrdering: true,
+    })
+    const documents = scip.scip.Index.deserializeBinary(
+      fs.readFileSync(output)
+    ).documents
+    for (const test of ['t1.js', 't2.js']) {
+      const document = documents.find(d => d.relative_path === test)
+      const symbols = new Set(document?.occurrences.map(o => o.symbol))
+      assert.ok(
+        symbols.has(`scip-typescript npm modules 1.0.0 \`${test}\`/own().`),
+        test
+      )
+      assert.ok(
+        symbols.has('scip-typescript npm modules 1.0.0 `shared.js`/shared().'),
+        test
+      )
+      const other = test === 't1.js' ? 't2.js' : 't1.js'
+      assert.ok(
+        !symbols.has(`scip-typescript npm modules 1.0.0 \`${other}\`/own().`),
+        test
+      )
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true })
+  }
+})
+
 test('only-files of none of the projects’ files is an empty index', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scip-only-files-'))
   const exitCode = process.exitCode

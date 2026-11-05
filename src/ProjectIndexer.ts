@@ -14,7 +14,8 @@ import { transformSourceFile } from './transformers/transformSourceFile'
 function createCompilerHost(
   cache: GlobalCache,
   compilerOptions: ts.CompilerOptions,
-  projectOptions: ProjectOptions
+  projectOptions: ProjectOptions,
+  moduleFiles?: Set<string>
 ): ts.CompilerHost {
   const host = ts.createCompilerHost(compilerOptions)
   if (!projectOptions.globalCaches) {
@@ -45,7 +46,11 @@ function createCompilerHost(
     onError,
     shouldCreateNewSourceFile
   ) => {
-    const fromCache = cache.sources.get(fileName)
+    // (A module file, forced to be a module whatever its syntax, is cached
+    // apart from the file as itself, which another project can have.)
+    const forced = moduleFiles?.has(fileName) ?? false
+    const key = forced ? `${fileName}\0module` : fileName
+    const fromCache = cache.sources.get(key)
     if (fromCache !== undefined) {
       const [sourceFile, cachedLanguageVersion] = fromCache
       if (isSameLanguageVersion(languageVersion, cachedLanguageVersion)) {
@@ -55,7 +60,7 @@ function createCompilerHost(
 
     const original = hostCopy.getSourceFile(
       fileName,
-      languageVersion,
+      forced ? forcedModule(languageVersion) : languageVersion,
       onError,
       shouldCreateNewSourceFile
     )
@@ -71,10 +76,51 @@ function createCompilerHost(
       compilerOptions,
       projectOptions.classicScripts
     )
-    cache.sources.set(fileName, [transformed, languageVersion])
+    cache.sources.set(key, [transformed, languageVersion])
     return transformed
   }
   return host
+}
+
+/** Source file options making a file a module, whatever its syntax. */
+function forcedModule(
+  languageVersion: ts.ScriptTarget | ts.CreateSourceFileOptions
+): ts.CreateSourceFileOptions {
+  const options: ts.CreateSourceFileOptions =
+    typeof languageVersion === 'object'
+      ? { ...languageVersion }
+      : { languageVersion }
+  options.setExternalModuleIndicator = file => {
+    ;(file as { externalModuleIndicator?: unknown }).externalModuleIndicator =
+      true
+  }
+  return options
+}
+
+/**
+ * A project configuration's list of files (`key`: paths relative to it, or
+ * absolute), if it has one, as TypeScript names them.
+ */
+function configFiles(
+  config: ts.ParsedCommandLine,
+  projectRoot: string,
+  key: string
+): Set<string> | undefined {
+  const raw = config.raw as Record<string, unknown> | undefined
+  const files = raw?.[key]
+  if (!Array.isArray(files)) {
+    return undefined
+  }
+  const configFile = projectRoot.endsWith('.json')
+    ? path.resolve(projectRoot)
+    : path.resolve(projectRoot, 'tsconfig.json')
+  return new Set(
+    files
+      .filter((file): file is string => typeof file === 'string')
+      .map(file =>
+        path.resolve(path.dirname(configFile), file).replaceAll('\\', '/')
+      )
+  )
 }
 
 export class ProjectIndexer {
@@ -87,8 +133,8 @@ export class ProjectIndexer {
   /**
    * The project's own only files, if its configuration lists them (its
    * `scipOnlyFiles`: paths relative to it, or absolute), as --only-files
-   * does for every project (ex: a generated project of a JS environment,
-   * whose scripts other projects of the same environment's kind document).
+   * does for every project (ex: a generated project of JS environments,
+   * whose scripts other projects of the same environments' kind document).
    */
   private projectOnlyFiles: Set<string> | undefined
   constructor(
@@ -101,23 +147,28 @@ export class ProjectIndexer {
     const compilerOptions: ts.CompilerOptions = options.stableTypeOrdering
       ? { ...config.options, stableTypeOrdering: true }
       : config.options
-    const host = createCompilerHost(cache, compilerOptions, options)
+    // (Its `scipModuleFiles` are modules whatever their syntax, ex: tests
+    // sharing a project with their harness's scripts, whose top-level
+    // declarations are each one's own.)
+    const moduleFiles = configFiles(
+      config,
+      options.projectRoot,
+      'scipModuleFiles'
+    )
+    const host = createCompilerHost(
+      cache,
+      compilerOptions,
+      options,
+      moduleFiles
+    )
     this.program = ts.createProgram(config.fileNames, compilerOptions, host)
     this.checker = this.program.getTypeChecker()
     this.packages = new Packages(options.projectRoot)
-    const raw = config.raw as { scipOnlyFiles?: unknown } | undefined
-    if (Array.isArray(raw?.scipOnlyFiles)) {
-      const configFile = options.projectRoot.endsWith('.json')
-        ? path.resolve(options.projectRoot)
-        : path.resolve(options.projectRoot, 'tsconfig.json')
-      this.projectOnlyFiles = new Set(
-        raw.scipOnlyFiles
-          .filter((file): file is string => typeof file === 'string')
-          .map(file =>
-            path.resolve(path.dirname(configFile), file).replaceAll('\\', '/')
-          )
-      )
-    }
+    this.projectOnlyFiles = configFiles(
+      config,
+      options.projectRoot,
+      'scipOnlyFiles'
+    )
   }
   public index(): void {
     const startTimestamp = Date.now()
