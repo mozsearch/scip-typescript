@@ -5,6 +5,7 @@ import * as ts from 'typescript'
 
 import { GlobalCache, ProjectOptions } from './CommandLineOptions'
 import { FileIndexer } from './FileIndexer'
+import { Hooks } from './Hooks'
 import { NodeOrdinals } from './NodeOrdinals'
 import { Packages } from './Packages'
 import * as scip from './scip'
@@ -126,6 +127,36 @@ function configFiles(
   )
 }
 
+/**
+ * A project configuration's map of files (`key`: paths relative to it, or
+ * absolute) to names, if it has one, as TypeScript names the files.
+ */
+function configFileNames(
+  config: ts.ParsedCommandLine,
+  projectRoot: string,
+  key: string
+): Map<string, Set<string>> {
+  const raw = config.raw as Record<string, unknown> | undefined
+  const files = raw?.[key]
+  const map = new Map<string, Set<string>>()
+  if (!files || typeof files !== 'object' || Array.isArray(files)) {
+    return map
+  }
+  const configFile = projectRoot.endsWith('.json')
+    ? path.resolve(projectRoot)
+    : path.resolve(projectRoot, 'tsconfig.json')
+  for (const [file, names] of Object.entries(files)) {
+    if (!Array.isArray(names)) {
+      continue
+    }
+    map.set(
+      path.resolve(path.dirname(configFile), file).replaceAll('\\', '/'),
+      new Set(names.filter((name): name is string => typeof name === 'string'))
+    )
+  }
+  return map
+}
+
 export class ProjectIndexer {
   private program: ts.Program
   private checker: ts.TypeChecker
@@ -140,6 +171,8 @@ export class ProjectIndexer {
    * whose scripts other projects of the same environments' kind document).
    */
   private projectOnlyFiles: Set<string> | undefined
+  /** Its hooks, with --hooks and module files (see Hooks.ts). */
+  private hooks: Hooks | undefined
   constructor(
     public readonly config: ts.ParsedCommandLine,
     public readonly options: ProjectOptions,
@@ -180,6 +213,20 @@ export class ProjectIndexer {
       options.projectRoot,
       'scipOnlyFiles'
     )
+    if (options.hooks && moduleFiles !== undefined && moduleFiles.size > 0) {
+      const packages = this.packages
+      this.hooks = new Hooks(
+        this.program,
+        this.checker,
+        config.fileNames,
+        moduleFiles,
+        configFileNames(config, options.projectRoot, 'scipHookNames'),
+        sourceFile => {
+          const symbol = packages.symbol(sourceFile.fileName)
+          return symbol.isEmpty() ? ScipSymbol.anonymousPackage() : symbol
+        }
+      )
+    }
   }
   public index(): void {
     const startTimestamp = Date.now()
@@ -256,7 +303,8 @@ export class ProjectIndexer {
         this.packages,
         sourceFile,
         this.ordinals,
-        this.options.externalSymbols
+        this.options.externalSymbols,
+        this.hooks
       )
       try {
         visitor.index()

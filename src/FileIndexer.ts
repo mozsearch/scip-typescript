@@ -14,6 +14,7 @@ import {
   typeParameterDescriptor,
 } from './Descriptor'
 import { ExternalSymbols } from './ExternalSymbols'
+import { Hooks, hookSymbolInformation } from './Hooks'
 import { NodeOrdinals, propertyName } from './NodeOrdinals'
 import { Packages } from './Packages'
 import { formatByteSizeAsHumanReadable } from './parseHumanByteSizeIntoNumber'
@@ -26,6 +27,8 @@ import { isObjectDefinePropertyCall } from './utils'
 export class FileIndexer {
   private localCounter = new Counter()
   private localSymbolTable: Map<ts.Node, ScipSymbol> = new Map()
+  /** The hooks whose symbol information the document has. */
+  private documentedHooks = new Set<string>()
   private workingDirectoryRegExp: RegExp
   constructor(
     public readonly checker: ts.TypeChecker,
@@ -36,7 +39,8 @@ export class FileIndexer {
     public readonly packages: Packages,
     public readonly sourceFile: ts.SourceFile,
     public readonly ordinals: NodeOrdinals,
-    public readonly externalSymbols?: ExternalSymbols
+    public readonly externalSymbols?: ExternalSymbols,
+    public readonly hooks?: Hooks
   ) {
     this.workingDirectoryRegExp = new RegExp(options.cwd, 'g')
   }
@@ -98,6 +102,12 @@ export class FileIndexer {
       const sym = this.getTSSymbolAtLocation(node)
       if (sym) {
         this.visitSymbolOccurrence(node, sym)
+      } else if (
+        this.hooks &&
+        ts.isIdentifier(node) &&
+        this.hooks.isUse(this.sourceFile, node)
+      ) {
+        this.visitHookUse(node)
       }
     }
 
@@ -112,6 +122,30 @@ export class FileIndexer {
     }
 
     ts.forEachChild(node, node => this.visit(node))
+  }
+
+  /** A script's use of one of its hooks (see Hooks.ts). */
+  private visitHookUse(node: ts.Identifier): void {
+    if (node.pos < 0 || node.end < 0 || !this.hooks) {
+      return
+    }
+    const name = ts.idText(node)
+    const symbol = this.hooks.symbol(this.sourceFile, name)
+    this.pushOccurrence(
+      new scip.scip.Occurrence({
+        range: Range.fromNode(node).toLsif(),
+        symbol: symbol.value,
+      })
+    )
+    this.documentHook(symbol, name)
+  }
+
+  private documentHook(symbol: ScipSymbol, name: string): void {
+    if (this.documentedHooks.has(symbol.value)) {
+      return
+    }
+    this.documentedHooks.add(symbol.value)
+    this.document.symbols.push(hookSymbolInformation(symbol, name))
   }
 
   // Get the ts.Symbol corresponding to the current node, potentially de-aliasing
@@ -261,9 +295,27 @@ export class FileIndexer {
         this.addSymbolInformation(node, sym, declaration, scipSymbol)
         this.handleShorthandPropertyDefinition(declaration, range)
         this.handleObjectBindingPattern(node, range)
+        this.handleHookDefinition(node, range)
         // Only emit one symbol for definitions sites, see https://github.com/sourcegraph/lsif-typescript/issues/45
         break
       }
+    }
+  }
+
+  /**
+   * Emits a definition occurrence of each hook a module file's top-level
+   * declaration defines (see Hooks.ts).
+   */
+  private handleHookDefinition(node: ts.Node, range: number[]): void {
+    for (const hook of this.hooks?.definedBy(this.sourceFile, node) ?? []) {
+      this.pushOccurrence(
+        new scip.scip.Occurrence({
+          range,
+          symbol: hook.value,
+          symbol_roles: scip.scip.SymbolRole.Definition,
+        })
+      )
+      this.documentHook(hook, ts.idText(node as ts.Identifier))
     }
   }
 
@@ -425,7 +477,16 @@ export class FileIndexer {
         language: 'ts',
         text: signature,
       }),
-      relationships: this.relationships(declaration, symbol),
+      relationships: [
+        ...this.relationships(declaration, symbol),
+        ...(this.hooks?.definedBy(declaration.getSourceFile(), node) ?? []).map(
+          hook =>
+            new scip.scip.Relationship({
+              symbol: hook.value,
+              is_definition: true,
+            })
+        ),
+      ],
     })
   }
 

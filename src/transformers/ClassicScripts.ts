@@ -58,6 +58,24 @@ function globalProperty(
     : undefined
 }
 
+/** (The property of a transformed source file, see `capturedGlobals`.) */
+const CAPTURED_GLOBALS = 'scipCapturedGlobals'
+
+/**
+ * The names a classic script reads from its global at its top level
+ * (`var name = global.name`, which isn't declared, as above), whose uses in
+ * it are the global's own, as they were when it ran, not those of the
+ * scripts after it (ex: SpiderMonkey's tests' shell.js's
+ * `var options = global.options`, the shell's function), if it has any.
+ */
+export function capturedGlobals(
+  sourceFile: ts.SourceFile
+): ReadonlySet<string> | undefined {
+  return (sourceFile as unknown as Record<string, Set<string> | undefined>)[
+    CAPTURED_GLOBALS
+  ]
+}
+
 export const classicScriptGlobalsTransformer: ts.TransformerFactory<
   ts.SourceFile
 > = () => sourceFile => {
@@ -65,6 +83,7 @@ export const classicScriptGlobalsTransformer: ts.TransformerFactory<
     return sourceFile
   }
   const aliases = new Set<string>()
+  const captured = new Set<string>()
   let changed = false
   const statements = sourceFile.statements.flatMap(
     (statement): ts.Statement[] => {
@@ -98,6 +117,7 @@ export const classicScriptGlobalsTransformer: ts.TransformerFactory<
             }
             const property = globalProperty(declaration.initializer, aliases)
             if (property && ts.idText(property) === name) {
+              captured.add(name)
               own.push(
                 ts.factory.createExpressionStatement(declaration.initializer)
               )
@@ -161,9 +181,15 @@ export const classicScriptGlobalsTransformer: ts.TransformerFactory<
       ]
     }
   )
-  return changed
-    ? ts.factory.updateSourceFile(sourceFile, statements)
-    : sourceFile
+  if (!changed) {
+    return sourceFile
+  }
+  const transformed = ts.factory.updateSourceFile(sourceFile, statements)
+  if (captured.size > 0) {
+    ;(transformed as unknown as Record<string, Set<string>>)[CAPTURED_GLOBALS] =
+      captured
+  }
+  return transformed
 }
 
 /** The function and arguments of an immediately called function expression. */

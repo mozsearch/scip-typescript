@@ -33,6 +33,8 @@ export interface MultiProjectOptions {
   stableTypeOrdering?: boolean
   /** Whether classic scripts stay scripts (see `--classic-scripts`). */
   classicScripts?: boolean
+  /** Whether projects' hooks are indexed (see `--hooks`, Hooks.ts). */
+  hooks?: boolean
 }
 
 /** Configuration options to index a single TypeScript project. */
@@ -97,6 +99,11 @@ export function mainCommand(
     .option(
       '--classic-scripts',
       "keep classic scripts' ChromeUtils.importESModule() and defineESModuleGetters() calls from making them modules (as the require() calls they're otherwise transformed into would), so that their top-level declarations stay globals, getters defined on their global are globals, and so are their top-level assignments to their global's properties (ex: `globalThis.name = value`)",
+      false
+    )
+    .option(
+      '--hooks',
+      "index a project's hooks: the names its scripts use but don't declare, which its scipModuleFiles declare at their top level (ex: a test harness's call of each test's `testSteps`), as symbols of the scripts (`harness.js/testSteps:`), whose uses are the scripts' and whose definitions are the module files' declarations, which have relationships to them (is_definition); and those of a project's scipHookNames (by script, the names it can use as hooks)",
       false
     )
     .option(
