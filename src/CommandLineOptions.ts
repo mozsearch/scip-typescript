@@ -35,6 +35,8 @@ export interface MultiProjectOptions {
   classicScripts?: boolean
   /** Whether projects' hooks are indexed (see `--hooks`, Hooks.ts). */
   hooks?: boolean
+  /** Whether projects which fail are left out (see `--skip-failed-projects`). */
+  skipFailedProjects?: boolean
 }
 
 /** Configuration options to index a single TypeScript project. */
@@ -104,6 +106,11 @@ export function mainCommand(
     .option(
       '--hooks',
       "index a project's hooks: the names its scripts use but don't declare, which its scipModuleFiles declare at their top level (ex: a test harness's call of each test's `testSteps`), as symbols of the scripts (`harness.js/testSteps:`), whose uses are the scripts' and whose definitions are the module files' declarations, which have relationships to them (is_definition); and those of a project's scipHookNames (by script, the names it can use as hooks)",
+      false
+    )
+    .option(
+      '--skip-failed-projects',
+      "leave out a project which TypeScript fails for (ex: its binder's recursion overflowing the stack on a deeply nested expression), which then has no documents, rather than ending the process, so that the other projects are indexed",
       false
     )
     .option(

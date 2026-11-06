@@ -262,7 +262,31 @@ function indexSingleProject(options: ProjectOptions, cache: GlobalCache): void {
       console.log(`- ${options.projectDisplayName} (none of --only-files)`)
       return
     }
-    new ProjectIndexer(config, options, cache).index()
+    if (!options.skipFailedProjects) {
+      new ProjectIndexer(config, options, cache).index()
+      return
+    }
+    // (With --skip-failed-projects, its documents are written once it's
+    // done, and if it fails, the sources cached for it, which the binder may
+    // have left half bound, are dropped.)
+    const documents: scip.scip.Index[] = []
+    try {
+      new ProjectIndexer(
+        config,
+        { ...options, writeIndex: index => documents.push(index) },
+        cache
+      ).index()
+    } catch (error) {
+      console.error(
+        `unexpected error indexing project '${options.projectDisplayName}', which has no documents`,
+        error
+      )
+      cache.sources.clear()
+      return
+    }
+    for (const index of documents) {
+      options.writeIndex(index)
+    }
   }
 }
 
