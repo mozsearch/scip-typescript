@@ -34,6 +34,11 @@ export class FileIndexer {
    * `membersNamed`).
    */
   private membersByName = new Map<ts.Node, Map<string, ts.NamedDeclaration[]>>()
+  /**
+   * Object literals' types' declarations (see
+   * `objectLiteralTypeDeclarations`).
+   */
+  private objectLiteralDeclarations = new Map<ts.Node, ts.Declaration[]>()
   private workingDirectoryRegExp: RegExp
   constructor(
     public readonly checker: ts.TypeChecker,
@@ -981,10 +986,9 @@ export class FileIndexer {
         onAncestor(declaration)
       }
       if (ts.isObjectLiteralExpression(declaration)) {
-        const tpe =
-          this.checker.getContextualType(declaration) ??
-          this.checker.getTypeAtLocation(declaration)
-        for (const symbolDeclaration of tpe.symbol?.declarations || []) {
+        for (const symbolDeclaration of this.objectLiteralTypeDeclarations(
+          declaration
+        )) {
           loop(symbolDeclaration)
         }
       } else if (
@@ -1004,6 +1008,27 @@ export class FileIndexer {
       }
     }
     loop(node)
+  }
+
+  /**
+   * The declarations of an object literal's type's symbol (its contextual
+   * type's, if it has one), once per literal (the checker checks the whole
+   * literal again for each getTypeAtLocation, which `relationships` asked for
+   * each of its properties: a literal of 2,231 properties, ex:
+   * web-platform-tests' named-character-references-data.js, took 32 s).
+   */
+  private objectLiteralTypeDeclarations(
+    node: ts.ObjectLiteralExpression
+  ): ts.Declaration[] {
+    let declarations = this.objectLiteralDeclarations.get(node)
+    if (declarations === undefined) {
+      const tpe =
+        this.checker.getContextualType(node) ??
+        this.checker.getTypeAtLocation(node)
+      declarations = tpe.symbol?.declarations || []
+      this.objectLiteralDeclarations.set(node, declarations)
+    }
+    return declarations
   }
 
   /**
