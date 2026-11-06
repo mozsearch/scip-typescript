@@ -29,6 +29,11 @@ export class FileIndexer {
   private localSymbolTable: Map<ts.Node, ScipSymbol> = new Map()
   /** The hooks whose symbol information the document has. */
   private documentedHooks = new Set<string>()
+  /**
+   * Classes' and interfaces' members by their names' text (see
+   * `membersNamed`).
+   */
+  private membersByName = new Map<ts.Node, Map<string, ts.NamedDeclaration[]>>()
   private workingDirectoryRegExp: RegExp
   constructor(
     public readonly checker: ts.TypeChecker,
@@ -543,14 +548,42 @@ export class FileIndexer {
     ) {
       const declarationName = declaration.name.getText()
       this.forEachAncestor(declaration.parent, ancestor => {
-        for (const member of ancestor.members) {
-          if (declarationName === member.name?.getText()) {
-            pushImplementation(member, true)
-          }
+        for (const member of this.membersNamed(ancestor, declarationName)) {
+          pushImplementation(member, true)
         }
       })
     }
     return relationships
+  }
+
+  /**
+   * An ancestor's members whose names' text is `name`, in order, from its
+   * members by name, made once (rather than comparing each member's name
+   * for each of their declarations: a class of 8,000 fields, ex: test262's
+   * unicode identifier tests', took minutes).
+   */
+  private membersNamed(
+    ancestor: ts.ClassLikeDeclaration | ts.InterfaceDeclaration,
+    name: string
+  ): ts.NamedDeclaration[] {
+    let byName = this.membersByName.get(ancestor)
+    if (byName === undefined) {
+      byName = new Map()
+      for (const member of ancestor.members) {
+        const text = member.name?.getText()
+        if (text === undefined) {
+          continue
+        }
+        const members = byName.get(text)
+        if (members) {
+          members.push(member)
+        } else {
+          byName.set(text, [member])
+        }
+      }
+      this.membersByName.set(ancestor, byName)
+    }
+    return byName.get(name) ?? []
   }
 
   private getParent(node: ts.Node): ts.Node {
